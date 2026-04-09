@@ -111,6 +111,26 @@ OpenCode 內建了兩種 Agent，您可以使用 `Tab` 鍵快速切換。
 
 了解更多關於 [Agents](https://opencode.ai/docs/agents) 的資訊。
 
+### 自訂擴充功能 (Fork 新增)
+
+此 Fork 包含上游 OpenCode 以外的額外功能：
+
+- **MemPalace 記憶系統** — 透過 [MemPalace](https://github.com/user/mempalace) 實現長期記憶。啟動時自動注入 L0+L1 語境到系統提示詞。內建 `memory_search` 工具可查詢過往對話記錄。
+- **Swarm 平行 Agent** — 使用 `swarm` 工具同時執行 2-5 個子 Agent 任務，每個任務獨立產生一個 Session。
+- **Agent 間通訊** — `send_message` 工具，讓 Swarm 成員之間可以互相傳遞訊息。
+- **z.ai Provider** — 內建 z.ai GLM-5 模型設定（128k 語境、tool_call、推理支援）。
+
+#### 快速開始
+
+```bash
+# 從原始碼執行（需要 bun）
+cd D:\Projects\opencode
+bun run dev run --model zai/glm-5 "你的提示詞"
+
+# 或安裝 opencode.cmd 從任何專案目錄執行
+opencode
+```
+
 ### 線上文件
 
 關於如何設定 OpenCode 的詳細資訊，請參閱我們的 [**官方文件**](https://opencode.ai/docs)。
