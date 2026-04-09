@@ -12,11 +12,11 @@ function palacePath(): string {
 
 function runMempalace(...args: string[]): string {
   try {
-    const proc = Bun.spawnSync(["python", "-m", "mempalace", ...args], {
+    const proc = Bun.spawnSync(["mempalace", ...args], {
       stdout: "pipe",
       stderr: "pipe",
       timeout: 30_000,
-      env: { ...process.env, MEMPALACE_PATH: palacePath() },
+      env: { ...process.env, MEMPALACE_PATH: palacePath(), PYTHONIOENCODING: "utf-8" },
     })
     if (proc.exitCode !== 0) {
       log.info("mempalace failed", { args, error: proc.stderr.toString().trim() })
