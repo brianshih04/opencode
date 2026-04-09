@@ -18,12 +18,16 @@ import z from "zod"
 import { Plugin } from "../plugin"
 import { ProviderID, type ModelID } from "../provider/schema"
 import { WebSearchTool } from "./websearch"
+import { MemorySearchTool } from "./memory_search"
+import { SwarmTool } from "./swarm"
+import { SendMessageTool } from "./send_message"
 import { CodeSearchTool } from "./codesearch"
 import { Flag } from "@/flag/flag"
 import { Log } from "@/util/log"
 import { LspTool } from "./lsp"
 import { Truncate } from "./truncate"
 import { ApplyPatchTool } from "./apply_patch"
+import { UltraPlanTool } from "./ultraplan"
 import { Glob } from "../util/glob"
 import path from "path"
 import { pathToFileURL } from "url"
@@ -150,12 +154,16 @@ export namespace ToolRegistry {
                 WebFetchTool,
                 TodoWriteTool,
                 WebSearchTool,
+                MemorySearchTool,
+                SwarmTool,
+                SendMessageTool,
                 CodeSearchTool,
                 SkillTool,
                 ApplyPatchTool,
                 ...(question ? [QuestionTool] : []),
                 ...(Flag.OPENCODE_EXPERIMENTAL_LSP_TOOL ? [LspTool] : []),
                 ...(Flag.OPENCODE_EXPERIMENTAL_PLAN_MODE && Flag.OPENCODE_CLIENT === "cli" ? [PlanExitTool] : []),
+                ...(Flag.OPENCODE_EXPERIMENTAL_ULTRAPLAN ? [UltraPlanTool] : []),
               ],
               build,
               { concurrency: "unbounded" },

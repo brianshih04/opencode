@@ -1,0 +1,8 @@
+Search your long-term memory (MemPalace) for past conversations, decisions, and project context.
+
+This tool queries a local vector database of memories mined from previous sessions. Use it when:
+- You need context from past conversations
+- The user asks "do you remember" or "what did we discuss about"
+- You want to recall decisions, preferences, or project history
+
+Returns verbatim memory chunks ranked by semantic similarity.

@@ -1,0 +1,5 @@
+Send a message to another agent teammate or broadcast to the team.
+
+Use this tool when running as part of a swarm/team to communicate findings, share results, or coordinate work with other agents.
+
+Set `to` to a specific agent name to send a direct message, or "*" to broadcast to all team members.

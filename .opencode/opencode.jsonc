@@ -4,6 +4,24 @@
     "opencode": {
       "options": {},
     },
+    "zai": {
+      "name": "z.ai",
+      "env": ["ZAI_API_KEY"],
+      "options": {
+        "baseURL": "https://api.z.ai/api/coding/paas/v4"
+      },
+      "models": {
+        "glm-5": {
+          "name": "GLM-5",
+          "tool_call": true,
+          "attachment": false,
+          "reasoning": true,
+          "temperature": true,
+          "limit": { "context": 128000, "output": 8192 },
+          "cost": { "input": 0, "output": 0 }
+        }
+      }
+    }
   },
   "permission": {
     "edit": {

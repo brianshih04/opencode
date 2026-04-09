@@ -1,0 +1,13 @@
+Run multiple coding tasks in parallel using specialized agents.
+
+This tool spawns multiple independent sub-agents simultaneously, each working on a different task. Use when:
+- Multiple independent tasks can benefit from parallel execution
+- You need to explore different parts of a codebase simultaneously
+- You want to run independent analysis, refactoring, or implementation tasks concurrently
+
+Each task gets its own isolated session. Results are collected and returned together.
+
+Constraints:
+- 2-5 tasks at a time
+- Each task should be independent (no dependencies between them)
+- Use 'general' agent for implementation, 'explore' for read-only investigation

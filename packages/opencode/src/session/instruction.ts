@@ -2,13 +2,13 @@ import os from "os"
 import path from "path"
 import { Effect, Layer, ServiceMap } from "effect"
 import { FetchHttpClient, HttpClient, HttpClientRequest } from "effect/unstable/http"
-import { Config } from "@/config/config"
 import { InstanceState } from "@/effect/instance-state"
 import { makeRuntime } from "@/effect/run-service"
 import { Flag } from "@/flag/flag"
 import { AppFileSystem } from "@/filesystem"
 import { withTransientReadRetry } from "@/util/effect-http-client"
 import { Global } from "../global"
+import { Config } from "@/config/config"
 import { Instance } from "../project/instance"
 import { Log } from "../util/log"
 import type { MessageV2 } from "./message-v2"
@@ -171,8 +171,18 @@ export namespace Instruction {
           const files = yield* Effect.forEach(Array.from(paths), read, { concurrency: 8 })
           const remote = yield* Effect.forEach(urls, fetch, { concurrency: 4 })
 
+          // Memory wake-up: inject MemPalace L0+L1 context
+          const memoryContext = (function() {
+            try {
+              const { Memory } = require("@/memory")
+              const text = Memory.wakeUp()
+              return text ? "\n\n## Long-term Memory\n" + text : ""
+            } catch { return "" }
+          })()
+
           return [
-            ...Array.from(paths).flatMap((item, i) => (files[i] ? [`Instructions from: ${item}\n${files[i]}`] : [])),
+            ...(memoryContext ? [memoryContext] : []),
+            ...Array.from(paths).flatMap((item, idx) => (files[idx] ? [`Instructions from: ${item}\n${files[idx]}`] : [])),
             ...urls.flatMap((item, i) => (remote[i] ? [`Instructions from: ${item}\n${remote[i]}`] : [])),
           ]
         })
