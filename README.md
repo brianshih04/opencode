@@ -112,6 +112,26 @@ This is used internally and can be invoked using `@general` in messages.
 
 Learn more about [agents](https://opencode.ai/docs/agents).
 
+### Custom Extensions (Fork Additions)
+
+This fork includes additional features beyond upstream OpenCode:
+
+- **MemPalace Memory System** — Long-term memory via [MemPalace](https://github.com/user/mempalace). Auto-injects L0+L1 context into system prompt on startup. Includes `memory_search` tool for querying past conversations.
+- **Swarm Parallel Agents** — Run 2-5 sub-agent tasks concurrently with the `swarm` tool. Each task spawns an independent session.
+- **Inter-Agent Messaging** — `send_message` tool for communication between swarm teammates.
+- **z.ai Provider** — Built-in config for z.ai GLM-5 model (128k context, tool_call, reasoning support).
+
+#### Quick Start with Fork
+
+```bash
+# From source (requires bun)
+cd D:\Projects\opencode
+bun run dev run --model zai/glm-5 "your prompt here"
+
+# Or install the opencode.cmd wrapper and run from any project directory
+opencode
+```
+
 ### Documentation
 
 For more info on how to configure OpenCode, [**head over to our docs**](https://opencode.ai/docs).
