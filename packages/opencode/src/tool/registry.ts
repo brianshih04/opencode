@@ -21,6 +21,7 @@ import { WebSearchTool } from "./websearch"
 import { MemorySearchTool } from "./memory_search"
 import { SwarmTool } from "./swarm"
 import { SendMessageTool } from "./send_message"
+import { BrowserTool } from "./browser"
 import { CodeSearchTool } from "./codesearch"
 import { Flag } from "@/flag/flag"
 import { Log } from "@/util/log"
@@ -157,6 +158,7 @@ export namespace ToolRegistry {
                 MemorySearchTool,
                 SwarmTool,
                 SendMessageTool,
+                BrowserTool,
                 CodeSearchTool,
                 SkillTool,
                 ApplyPatchTool,

@@ -1,0 +1,30 @@
+Control a web browser through the OpenCLI daemon + Chrome Extension.
+
+This tool lets you navigate websites, click elements, type text, take screenshots, extract content, and more. It connects to the OpenCLI daemon running on localhost:19825, which communicates with a Chrome Extension.
+
+**Prerequisites:**
+- OpenCLI daemon must be running (`opencli doctor` to start)
+- Chrome Extension must be installed and connected
+
+**Actions:**
+
+- `navigate` — Go to a URL
+- `click` — Click an element by CSS selector
+- `type` — Type text into an input field
+- `evaluate` — Execute JavaScript on the page
+- `screenshot` — Capture a screenshot (optionally save to file)
+- `content` — Extract text content from the page or a specific element
+- `tabs` — List all open tabs
+- `select_tab` — Switch to a tab by index
+- `cookies` — Get cookies for the current page
+- `scroll` — Scroll the page (up/down/top/bottom)
+- `wait` — Wait for an element to appear
+- `url` — Get current page URL and title
+- `status` — Check if daemon and extension are connected
+
+**Example:**
+```json
+{ "action": "navigate", "url": "https://news.ycombinator.com" }
+{ "action": "content", "selector": ".titleline" }
+{ "action": "screenshot", "path": "screenshot.png" }
+```
