@@ -115,10 +115,90 @@ OpenCode 內建了兩種 Agent，您可以使用 `Tab` 鍵快速切換。
 
 此 Fork 包含上游 OpenCode 以外的額外功能：
 
-- **MemPalace 記憶系統** — 透過 [MemPalace](https://github.com/user/mempalace) 實現長期記憶。啟動時自動注入 L0+L1 語境到系統提示詞。內建 `memory_search` 工具可查詢過往對話記錄。
-- **Swarm 平行 Agent** — 使用 `swarm` 工具同時執行 2-5 個子 Agent 任務，每個任務獨立產生一個 Session。
-- **Agent 間通訊** — `send_message` 工具，讓 Swarm 成員之間可以互相傳遞訊息。
-- **z.ai Provider** — 內建 z.ai GLM-5 模型設定（128k 語境、tool_call、推理支援）。
+#### 🧠 MemPalace 記憶系統
+
+透過 [MemPalace](https://github.com/user/mempalace) 實現長期記憶。
+- 啟動時自動注入 L0+L1 語境到系統提示詞
+- `memory_search` 工具可查詢過往對話與專案知識
+- Session 壓縮時自動觸發 `dream()`，將對話內容存入記憶庫
+- 多來源：對話、程式碼、文件都可以 mining
+
+#### 🐝 Swarm 平行 Agent
+
+兩種多 Agent 協調模式：
+- **Leader 模式** — 描述高層目標，Team Lead 自動拆解成 2-5 個平行子任務並執行
+- **Parallel 模式** — 手動指定任務同時執行
+- TaskTracker 追蹤狀態（✓ ⟳ ✗）
+- 範例：`{"mode": "leader", "goal": "分析這個專案的安全性問題"}`
+
+#### 📋 任務管理
+
+持久化的任務追蹤系統：
+- 建立/更新/列表/查詢任務
+- 狀態流程：`pending` → `in_progress` → `completed` / `deleted`
+- 任務依賴（`blocks` / `blockedBy`）
+- 完成任務時自動解鎖被依賴的任務
+- 可指派 owner 給不同 Agent
+
+#### ✉️ Agent 間通訊
+
+檔案式信箱系統：
+- 發送私訊給特定 Agent
+- 廣播（`*`）給所有隊友
+- 訊息跨 Session 持久保存
+
+#### 🌐 瀏覽器自動化
+
+透過 [OpenCLI](https://github.com/brianshih04/opencli) daemon + 擴充功能控制 Chrome：
+- 13 種操作：導航、點擊、輸入、執行 JS、截圖、取得內容、分頁管理等
+- 反偵測隱匿注入
+- 截圖存檔
+
+#### 🤖 Agent 模型指定
+
+每個 Agent 可以指定不同的 LLM 模型：
+
+| Agent | 模型 | 用途 |
+|-------|------|------|
+| **build** | zai/glm-5 | 主力開發、修改、重構 |
+| **plan** | zai/glm-4.7-flash | 快速唯讀分析、探索 |
+| **general** | zai/glm-5-turbo | 子 Agent 平行任務 |
+
+在 `.opencode/opencode.jsonc` 中設定：
+```jsonc
+{
+  "agent": {
+    "build": { "model": "zai/glm-5" },
+    "plan": { "model": "zai/glm-4.7-flash" },
+    "general": { "model": "zai/glm-5-turbo" }
+  }
+}
+```
+
+#### z.ai Provider
+
+內建 z.ai 模型設定（GLM-5、GLM-5 Turbo、GLM-4.7 Flash）。
+設定環境變數 `ZAI_API_KEY` 即可啟用。
+
+#### 指令使用方式
+
+```bash
+# 一次性執行，指定模型和 Agent
+opencode run --model zai/glm-5 --agent build "修復登入 bug"
+opencode run --model zai/glm-4.7-flash --agent plan "分析架構"
+
+# TUI 互動模式
+opencode
+# 進入後可使用：
+#   Tab       — 切換 build/plan Agent
+#   Ctrl+K   — 切換模型
+#   /compact  — 壓縮對話歷史
+#   /new      — 開新 Session
+#   /status   — 顯示 Session 狀態
+
+# 在任何專案目錄執行
+opencode D:\Projects\my-project
+```
 
 #### 快速開始
 

@@ -116,19 +116,99 @@ Learn more about [agents](https://opencode.ai/docs/agents).
 
 This fork includes additional features beyond upstream OpenCode:
 
-- **MemPalace Memory System** — Long-term memory via [MemPalace](https://github.com/user/mempalace). Auto-injects L0+L1 context into system prompt on startup. Includes `memory_search` tool for querying past conversations.
-- **Swarm Parallel Agents** — Run 2-5 sub-agent tasks concurrently with the `swarm` tool. Each task spawns an independent session.
-- **Inter-Agent Messaging** — `send_message` tool for communication between swarm teammates.
-- **z.ai Provider** — Built-in config for z.ai GLM-5 model (128k context, tool_call, reasoning support).
+#### 🧠 MemPalace Memory System
 
-#### Quick Start with Fork
+Long-term memory via [MemPalace](https://github.com/user/mempalace).
+- Auto-injects L0+L1 context into system prompt on startup
+- `memory_search` tool for querying past conversations and project knowledge
+- Auto-trigger `dream()` on session compaction — mines conversation transcripts into memory palace
+- Multi-source: conversations, code, documents can all be mined
+
+#### 🐝 Swarm Parallel Agents
+
+Two modes for multi-agent coordination:
+- **Leader mode** — Describe a high-level goal, a Team Lead agent automatically breaks it into 2-5 parallel subtasks and executes them
+- **Parallel mode** — Manually specify exact tasks to run concurrently
+- TaskTracker with status indicators (✓ ⟳ ✗)
+- Example: `{"mode": "leader", "goal": "Analyze this codebase for security issues"}`
+
+#### 📋 Task Management
+
+Persistent task tracking with file-based storage:
+- Create/update/list/get tasks
+- Status workflow: `pending` → `in_progress` → `completed` / `deleted`
+- Task dependencies via `blocks` and `blockedBy`
+- Auto-unblock dependents when task completes
+- Owner assignment for team coordination
+
+#### ✉️ Inter-Agent Messaging
+
+File-based mailbox system:
+- Direct messages to specific agents
+- Broadcast (`*`) to all teammates
+- Messages persist across session restarts
+
+#### 🌐 Browser Automation
+
+Control Chrome via [OpenCLI](https://github.com/brianshih04/opencli) daemon + extension:
+- 13 operations: navigate, click, type, evaluate, screenshot, content, tabs, select_tab, cookies, scroll, wait, url, status
+- Anti-detection stealth injection
+- Screenshot save to file
+
+#### 🤖 Per-Agent Model Configuration
+
+Assign different LLM models to different agents:
+
+| Agent | Model | Purpose |
+|-------|-------|---------|
+| **build** | zai/glm-5 | Main development |
+| **plan** | zai/glm-4.7-flash | Fast read-only analysis |
+| **general** | zai/glm-5-turbo | Sub-agent parallel tasks |
+
+Configure in `.opencode/opencode.jsonc`:
+```jsonc
+{
+  "agent": {
+    "build": { "model": "zai/glm-5" },
+    "plan": { "model": "zai/glm-4.7-flash" },
+    "general": { "model": "zai/glm-5-turbo" }
+  }
+}
+```
+
+#### z.ai Provider
+
+Built-in config for z.ai models (GLM-5, GLM-5 Turbo, GLM-4.7 Flash).
+Set `ZAI_API_KEY` environment variable to activate.
+
+#### Slash Commands & CLI Usage
+
+```bash
+# One-shot with specific model and agent
+opencode run --model zai/glm-5 --agent build "Fix the auth bug"
+opencode run --model zai/glm-4.7-flash --agent plan "Analyze the architecture"
+
+# TUI interactive mode
+opencode
+# Then use:
+#   Tab       — Switch between build/plan agents
+#   Ctrl+K   — Switch model
+#   /compact  — Compact conversation history
+#   /new      — Start new session
+#   /status   — Show session status
+
+# From any project directory
+opencode D:\Projects\my-project
+```
+
+#### Quick Start
 
 ```bash
 # From source (requires bun)
 cd D:\Projects\opencode
 bun run dev run --model zai/glm-5 "your prompt here"
 
-# Or install the opencode.cmd wrapper and run from any project directory
+# Or use the opencode.cmd wrapper
 opencode
 ```
 
