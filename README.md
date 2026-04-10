@@ -29,6 +29,9 @@ This is an enhanced fork of [OpenCode](https://github.com/anomalyco/opencode) wi
 git clone https://github.com/brianshih04/opencode.git
 cd opencode
 
+# Switch to brian_main branch
+git checkout brian_main
+
 # Install dependencies
 bun install
 
@@ -39,25 +42,38 @@ bun run dev
 bun run dev run --model zai/glm-5-turbo "your prompt here"
 ```
 
-#### Optional: opencode.cmd Wrapper
+#### Global `opencode` Command (Windows)
 
-Create a wrapper script to run from any project directory:
+Create a wrapper to run from any directory:
 
-```batch
+```powershell
+# 1. Create bin directory
+mkdir $env:USERPROFILE\.openclaw\bin -Force
+
+# 2. Create wrapper script (replace E:\Projects\opencode with your path)
+"@"
 @echo off
 setlocal
-cd /d D:\Projects\opencode\packages\opencode
-C:\Users\Brian\.bun\bin\bun.exe run dev %*
-```
+cd /d E:\Projects\opencode
+bun run dev %*
+"@ | Set-Content $env:USERPROFILE\.openclaw\bin\opencode.cmd
 
-Save to a directory in your PATH (e.g. `C:\Users\Brian\.openclaw\bin\opencode.cmd`).
+# 3. Add to PATH
+[Environment]::SetEnvironmentVariable("PATH", "$([Environment]::GetEnvironmentVariable('PATH','User'));$env:USERPROFILE\.openclaw\bin", "User")
+
+# 4. Restart terminal, then:
+opencode                                    # TUI mode
+opencode run --model zai/glm-5-turbo "fix"  # One-shot
+```
 
 #### Browser Automation Setup
 
-1. Clone [OpenCLI](https://github.com/brianshih04/opencli) and build: `npm run build`
-2. Start the daemon: `node dist/src/main.js`
-3. Install the Chrome Extension from `extension/dist/` (Load unpacked in `chrome://extensions/`)
-4. Daemon runs on `localhost:19825` — verify with `node dist/src/main.js doctor`
+1. Clone [OpenCLI](https://github.com/brianshih04/opencli)
+2. Install: `npm install --ignore-scripts` (Windows: skip bash prepare script)
+3. Build: `npm run build`
+4. Start daemon: `node dist/src/main.js`
+5. Install Chrome Extension from `extension/dist/` (Load unpacked in `chrome://extensions/`)
+6. Daemon runs on `localhost:19825` — verify with `node dist/src/main.js doctor`
 
 ### Agents
 

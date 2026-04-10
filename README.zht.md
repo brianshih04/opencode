@@ -29,6 +29,9 @@
 git clone https://github.com/brianshih04/opencode.git
 cd opencode
 
+# 切換到 brian_main 分支
+git checkout brian_main
+
 # 安裝依賴
 bun install
 
@@ -39,25 +42,38 @@ bun run dev
 bun run dev run --model zai/glm-5-turbo "你的提示詞"
 ```
 
-#### 選用：opencode.cmd 包裝腳本
+#### 全域 `opencode` 指令（Windows）
 
-建立一個包裝腳本，從任何專案目錄執行：
+建立包裝腳本，從任何目錄執行：
 
-```batch
+```powershell
+# 1. 建立 bin 目錄
+mkdir $env:USERPROFILE\.openclaw\bin -Force
+
+# 2. 建立包裝腳本（將 E:\Projects\opencode 換成你的路徑）
+"@"
 @echo off
 setlocal
-cd /d D:\Projects\opencode\packages\opencode
-C:\Users\Brian\.bun\bin\bun.exe run dev %*
-```
+cd /d E:\Projects\opencode
+bun run dev %*
+"@ | Set-Content $env:USERPROFILE\.openclaw\bin\opencode.cmd
 
-存到 PATH 中的目錄（如 `C:\Users\Brian\.openclaw\bin\opencode.cmd`）。
+# 3. 加到 PATH
+[Environment]::SetEnvironmentVariable("PATH", "$([Environment]::GetEnvironmentVariable('PATH','User'));$env:USERPROFILE\.openclaw\bin", "User")
+
+# 4. 重開終端機後就能用了
+opencode                                    # TUI 模式
+opencode run --model zai/glm-5-turbo "修 bug"  # 一次性
+```
 
 #### 瀏覽器自動化設定
 
-1. 複製 [OpenCLI](https://github.com/brianshih04/opencli) 並建置：`npm run build`
-2. 啟動 daemon：`node dist/src/main.js`
-3. 從 `extension/dist/` 安裝 Chrome 擴充功能（在 `chrome://extensions/` 中「載入未封裝擴充功能」）
-4. Daemon 運行在 `localhost:19825` — 用 `node dist/src/main.js doctor` 驗證
+1. 複製 [OpenCLI](https://github.com/brianshih04/opencli)
+2. 安裝：`npm install --ignore-scripts`（Windows 需跳過 bash 的 prepare 腳本）
+3. 建置：`npm run build`
+4. 啟動 daemon：`node dist/src/main.js`
+5. 從 `extension/dist/` 安裝 Chrome 擴充功能（在 `chrome://extensions/` 中「載入未封裝擴充功能」）
+6. Daemon 運行在 `localhost:19825` — 用 `node dist/src/main.js doctor` 驗證
 
 ### Agents
 
