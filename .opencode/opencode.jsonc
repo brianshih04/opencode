@@ -19,8 +19,40 @@
           "temperature": true,
           "limit": { "context": 128000, "output": 8192 },
           "cost": { "input": 0, "output": 0 }
+        },
+        "glm-5-turbo": {
+          "name": "GLM-5 Turbo",
+          "tool_call": true,
+          "attachment": false,
+          "reasoning": true,
+          "temperature": true,
+          "limit": { "context": 128000, "output": 8192 },
+          "cost": { "input": 0, "output": 0 }
+        },
+        "glm-4.7-flash": {
+          "name": "GLM-4.7 Flash",
+          "tool_call": true,
+          "attachment": false,
+          "reasoning": true,
+          "temperature": true,
+          "limit": { "context": 128000, "output": 8192 },
+          "cost": { "input": 0, "output": 0 }
         }
       }
+    }
+  },
+  "agent": {
+    "build": {
+      "model": "zai/glm-5",
+      "description": "主力 agent，使用 GLM-5 進行開發、修改、重構"
+    },
+    "plan": {
+      "model": "zai/glm-4.7-flash",
+      "description": "快速分析 agent，使用 GLM-4.7 Flash 做唯讀探索與規劃"
+    },
+    "general": {
+      "model": "zai/glm-5-turbo",
+      "description": "子 agent，使用 GLM-5 Turbo 處理平行任務"
     }
   },
   "permission": {
