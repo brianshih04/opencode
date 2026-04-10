@@ -231,6 +231,27 @@ export namespace Agent {
               ),
               prompt: PROMPT_SUMMARY,
             },
+            ultraplan: {
+              name: "ultraplan",
+              mode: "subagent",
+              native: true,
+              description: `Deep planning agent specialized for complex, multi-step tasks. Uses extensive reasoning to create comprehensive plans with risk assessment, dependencies, and verification criteria.`,
+              permission: Permission.merge(
+                defaults,
+                Permission.fromConfig({
+                  "*": "deny",
+                  read: "allow",
+                  glob: "allow",
+                  grep: "allow",
+                  bash: "allow",
+                  webfetch: "allow",
+                  websearch: "allow",
+                  codesearch: "allow",
+                }),
+                user,
+              ),
+              options: {},
+            },
           }
 
           for (const [key, value] of Object.entries(cfg.agent ?? {})) {

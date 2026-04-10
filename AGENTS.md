@@ -1,128 +1,43 @@
-- To regenerate the JavaScript SDK, run `./packages/sdk/js/script/build.ts`.
-- ALWAYS USE PARALLEL TOOLS WHEN APPLICABLE.
-- The default branch in this repo is `dev`.
-- Local `main` ref may not exist; use `dev` or `origin/dev` for diffs.
-- Prefer automation: execute requested actions without confirmation unless blocked by missing info or safety/irreversibility.
+# AGENTS.md — Fork Development Guide
+
+## Branch Strategy
+- Default branch: `brian_main`
+- All changes on `brian_main`, pushed to `brianshih04/opencode`
+- Use `--no-verify` on push (pre-push hook fails on `desktop-electron` typecheck, not our code)
 
 ## Style Guide
 
 ### General Principles
-
 - Keep things in one function unless composable or reusable
 - Avoid `try`/`catch` where possible
 - Avoid using the `any` type
 - Prefer single word variable names where possible
 - Use Bun APIs when possible, like `Bun.file()`
-- Rely on type inference when possible; avoid explicit type annotations or interfaces unless necessary for exports or clarity
-- Prefer functional array methods (flatMap, filter, map) over for loops; use type guards on filter to maintain type inference downstream
+- Rely on type inference when possible; avoid explicit type annotations unless necessary
 
-### Naming
+### Naming (Mandatory)
+- Use single word names by default for new locals, params, and helper functions
+- Multi-word names only when a single word would be unclear
+- Good: `pid`, `cfg`, `err`, `opts`, `dir`, `root`, `child`, `state`
+- Bad: `inputPID`, `existingClient`, `connectTimeout`
 
-Prefer single word names for variables and functions. Only use multiple words if necessary.
+### Effect v4 Notes
+- `catchAll` does NOT exist — use `Effect.catch` or `Effect.catchTag`
+- Strict typing requires matching error/context channels
+- Plain functions preferred over Service/Layer for custom modules (avoids v4 boilerplate)
 
-### Naming Enforcement (Read This)
+### Tool Definitions
+- `Tool.define` description must be a static string (not dynamic) due to type constraints
+- Tool `.txt` prompt files are separate from `.ts` implementation
 
-THIS RULE IS MANDATORY FOR AGENT WRITTEN CODE.
-
-- Use single word names by default for new locals, params, and helper functions.
-- Multi-word names are allowed only when a single word would be unclear or ambiguous.
-- Do not introduce new camelCase compounds when a short single-word alternative is clear.
-- Before finishing edits, review touched lines and shorten newly introduced identifiers where possible.
-- Good short names to prefer: `pid`, `cfg`, `err`, `opts`, `dir`, `root`, `child`, `state`, `timeout`.
-- Examples to avoid unless truly required: `inputPID`, `existingClient`, `connectTimeout`, `workerPath`.
-
-```ts
-// Good
-const foo = 1
-function journal(dir: string) {}
-
-// Bad
-const fooBar = 1
-function prepareJournal(dir: string) {}
-```
-
-Reduce total variable count by inlining when a value is only used once.
-
-```ts
-// Good
-const journal = await Bun.file(path.join(dir, "journal.json")).json()
-
-// Bad
-const journalPath = path.join(dir, "journal.json")
-const journal = await Bun.file(journalPath).json()
-```
-
-### Destructuring
-
-Avoid unnecessary destructuring. Use dot notation to preserve context.
-
-```ts
-// Good
-obj.a
-obj.b
-
-// Bad
-const { a, b } = obj
-```
-
-### Variables
-
-Prefer `const` over `let`. Use ternaries or early returns instead of reassignment.
-
-```ts
-// Good
-const foo = condition ? 1 : 2
-
-// Bad
-let foo
-if (condition) foo = 1
-else foo = 2
-```
-
-### Control Flow
-
-Avoid `else` statements. Prefer early returns.
-
-```ts
-// Good
-function foo() {
-  if (condition) return 1
-  return 2
-}
-
-// Bad
-function foo() {
-  if (condition) return 1
-  else return 2
-}
-```
-
-### Schema Definitions (Drizzle)
-
-Use snake_case for field names so column names don't need to be redefined as strings.
-
-```ts
-// Good
-const table = sqliteTable("session", {
-  id: text().primaryKey(),
-  project_id: text().notNull(),
-  created_at: integer().notNull(),
-})
-
-// Bad
-const table = sqliteTable("session", {
-  id: text("id").primaryKey(),
-  projectID: text("project_id").notNull(),
-  createdAt: integer("created_at").notNull(),
-})
-```
+## Key Architecture
+- Runtime: Bun (runs TypeScript directly, no recompile for `bun run dev`)
+- Framework: Effect v4
+- Config: `.opencode/opencode.jsonc` (z.ai provider + agent model mapping)
+- Custom tools: `src/tool/` — browser.ts, memory_search.ts, swarm.ts, send_message.ts, task-mgmt.ts
+- Memory: `src/memory/index.ts` — MemPalace integration
+- Auto-dream: `Memory.initDreamOnCompaction()` via `Bus.subscribe(SessionCompaction.Event.Compacted)`
 
 ## Testing
-
-- Avoid mocks as much as possible
-- Test actual implementation, do not duplicate logic into tests
-- Tests cannot run from repo root (guard: `do-not-run-tests-from-root`); run from package dirs like `packages/opencode`.
-
-## Type Checking
-
-- Always run `bun typecheck` from package directories (e.g., `packages/opencode`), never `tsc` directly.
+- Always run `bun typecheck` from `packages/opencode`, never `tsc` directly
+- Tests cannot run from repo root; run from `packages/opencode`

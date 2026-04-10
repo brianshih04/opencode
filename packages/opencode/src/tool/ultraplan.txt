@@ -1,0 +1,17 @@
+Deep planning for complex tasks using the most capable model. Use this when a task requires extensive research, multi-step reasoning, or involves significant uncertainty. UltraPlan spawns a dedicated planning session with extended timeout and comprehensive analysis.
+
+**When to use:**
+- Large refactoring or architecture changes
+- Complex multi-component features
+- Tasks requiring extensive code exploration
+- Decisions with long-term implications
+- When the standard approach would require many back-and-forth iterations
+
+**Output:**
+- Structured plan with clear steps
+- Risk assessment
+- Dependencies and prerequisites
+- Time estimates
+- Verification criteria
+
+The plan will be presented for your review before any execution begins.
