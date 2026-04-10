@@ -30,6 +30,7 @@ import { LspTool } from "./lsp"
 import { Truncate } from "./truncate"
 import { ApplyPatchTool } from "./apply_patch"
 import { UltraPlanTool } from "./ultraplan"
+import { ToolSearchTool } from "./tool_search"
 import { Glob } from "../util/glob"
 import path from "path"
 import { pathToFileURL } from "url"
@@ -168,6 +169,7 @@ export namespace ToolRegistry {
                 ...(Flag.OPENCODE_EXPERIMENTAL_LSP_TOOL ? [LspTool] : []),
                 ...(Flag.OPENCODE_EXPERIMENTAL_PLAN_MODE && Flag.OPENCODE_CLIENT === "cli" ? [PlanExitTool] : []),
                 ...(Flag.OPENCODE_EXPERIMENTAL_ULTRAPLAN ? [UltraPlanTool] : []),
+                ToolSearchTool,
               ],
               build,
               { concurrency: "unbounded" },

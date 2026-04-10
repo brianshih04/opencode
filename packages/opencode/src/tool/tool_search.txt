@@ -1,0 +1,20 @@
+ToolSearch: find available tools by keyword or name.
+
+This tool lets you discover and inspect other tools available in the current session. Use it when you need to find a tool but aren't sure of its exact name, or want to see what tools exist.
+
+Query forms:
+- "select:browser,screenshot" — fetch specific tools by exact name (comma-separated)
+- "file search" — keyword search across tool names and descriptions
+- "+task create" — require "task" in the name, rank by remaining terms
+
+The search returns matching tool names with their descriptions and parameter schemas, so you can call them directly.
+
+Results include:
+- Tool name
+- Tool description
+- Whether the tool is enabled in current agent context
+
+Tips:
+- Tool names use snake_case (e.g., memory_search, task_mgmt, web_fetch)
+- Search is case-insensitive
+- Multiple keywords are scored independently (more matches = higher rank)
