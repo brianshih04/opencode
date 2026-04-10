@@ -11,6 +11,15 @@
         "baseURL": "https://api.z.ai/api/coding/paas/v4"
       },
       "models": {
+        "glm-5.1": {
+          "name": "GLM-5.1",
+          "tool_call": true,
+          "attachment": false,
+          "reasoning": true,
+          "temperature": true,
+          "limit": { "context": 128000, "output": 8192 },
+          "cost": { "input": 0, "output": 0 }
+        },
         "glm-5": {
           "name": "GLM-5",
           "tool_call": true,
@@ -29,8 +38,8 @@
           "limit": { "context": 128000, "output": 8192 },
           "cost": { "input": 0, "output": 0 }
         },
-        "glm-4.7-flash": {
-          "name": "GLM-4.7 Flash",
+        "glm-4.7": {
+          "name": "GLM-4.7",
           "tool_call": true,
           "attachment": false,
           "reasoning": true,
@@ -42,17 +51,26 @@
     }
   },
   "agent": {
-    "build": {
-      "model": "zai/glm-5",
-      "description": "主力 agent，使用 GLM-5 進行開發、修改、重構"
-    },
     "plan": {
-      "model": "zai/glm-4.7-flash",
-      "description": "快速分析 agent，使用 GLM-4.7 Flash 做唯讀探索與規劃"
+      "model": "zai/glm-5.1",
+      "description": "最強大腦 — 旗艦模型，長程任務與複雜架構規劃。分析整個專案、制定多平台策略。唯讀模式。"
+    },
+    "build": {
+      "model": "zai/glm-5-turbo",
+      "description": "效率兵工廠 — 專為工具調用與快速代碼生成優化，反應最快且指令遵循度高。處理具體開發任務。"
+    },
+    "review": {
+      "model": "zai/glm-5",
+      "description": "嚴謹守門員 — 注重邏輯嚴密性，長文本穩定度高。擔任第二對眼睛抓 Bug、檢查邏輯。唯讀模式。",
+      "mode": "subagent",
+      "permission": {
+        "edit": "*:deny",
+        "bash": "*:confirm"
+      }
     },
     "general": {
-      "model": "zai/glm-5-turbo",
-      "description": "子 agent，使用 GLM-5 Turbo 處理平行任務"
+      "model": "zai/glm-4.7",
+      "description": "輕量助手 — 成本最低，處理日常對話、文案潤飾、簡單 Git 指令。不浪費高端 Token。"
     }
   },
   "permission": {
