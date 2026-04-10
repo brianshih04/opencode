@@ -1,0 +1,19 @@
+Cron: schedule recurring or one-shot agent tasks.
+
+Create, list, and delete scheduled tasks using standard 5-field cron expressions (minute hour day-of-month month day-of-week).
+
+Actions:
+- create: Schedule a new task with a cron expression and prompt
+- list: Show all scheduled tasks
+- delete: Remove a task by ID
+
+Cron expression format (local time):
+  M H DoM Mon DoW
+  */5 * * * *     = every 5 minutes
+  30 9 * * 1-5    = weekdays at 9:30am
+  0 0 1 1 *       = midnight on Jan 1st (once)
+
+Tasks are stored in ~/.opencode/cron-tasks.json and survive restarts.
+One-shot tasks (recurring: false) auto-delete after firing.
+
+Limit: 50 tasks maximum.

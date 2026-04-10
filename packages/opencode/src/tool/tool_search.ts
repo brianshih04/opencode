@@ -32,6 +32,7 @@ const CATALOG = [
   { name: "browser", description: "Browser automation via OpenCLI daemon (navigate, click, type, screenshot, etc.)" },
   { name: "task_mgmt", description: "Task management with create/update/list/get and dependencies" },
   { name: "tool_search", description: "Search and discover available tools by keyword or name" },
+  { name: "cron", description: "Schedule recurring or one-shot tasks with cron expressions (create/list/delete)" },
   { name: "ultraplan", description: "Deep planning with risk assessment and verification criteria" },
 ]
 
