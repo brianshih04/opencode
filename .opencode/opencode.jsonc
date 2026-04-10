@@ -71,13 +71,7 @@
     "review": {
       "model": "zai/glm-5",
       "description": "嚴謹守門員 — 注重邏輯嚴密性，長文本穩定度高。擔任第二對眼睛抓 Bug、檢查邏輯。唯讀模式。",
-      "mode": "subagent",
-      "tools": {
-        "write": false,
-        "edit": false,
-        "patch": false,
-        "bash": false
-      }
+      "mode": "subagent"
     },
     "general": {
       "model": "zai/glm-4.7",
