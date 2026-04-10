@@ -1,16 +1,34 @@
-Run multiple tasks in parallel using a team of agents.
+Run multiple tasks in parallel or sequentially using a team of agents.
 
-Two modes:
+Three modes:
 
-1. **Leader mode** (`mode: "leader"`) — Describe a high-level goal. A Team Lead agent will automatically break it down into 2-5 parallel subtasks and execute them. Example:
+1. **Leader mode** (`mode: "leader"`) — Describe a high-level goal. The system automatically assesses query complexity, picks the best strategy (depth-first / breadth-first / straightforward), and determines the optimal number of subagents. A Team Lead agent breaks down the goal and a Synthesis agent combines results. Example:
    ```json
-   { "mode": "leader", "goal": "Analyze this codebase for security issues and performance bottlenecks", "max_tasks": 3 }
+   { "mode": "leader", "goal": "Analyze this codebase for security issues and performance bottlenecks" }
+   { "mode": "leader", "goal": "Compare the error handling approaches across all API endpoints", "max_tasks": 5, "strategy": "breadth-first" }
    ```
 
-2. **Parallel mode** (`mode: "parallel"`) — Manually specify exact tasks to run in parallel. Example:
+   **Strategy options** (default: "auto"):
+   - `auto` — System decides based on query analysis
+   - `depth-first` — Multiple perspectives on the same topic (e.g. analyze from security, performance, and UX angles)
+   - `breadth-first` — Multiple independent sub-topics (e.g. check auth, database, and API modules separately)
+
+   **Agent count** is auto-determined (1-20) based on complexity. Override with `max_tasks`.
+
+2. **Chain mode** (`mode: "chain"`) — Run tasks sequentially, each receiving the previous task's output. Use `$PREV` in prompts to reference previous output. Example:
    ```json
-   { "mode": "parallel", "tasks": [{ "description": "Find TODOs", "prompt": "Search for all TODO comments", "agent": "general" }, { "description": "Check types", "prompt": "Run type check and report errors", "agent": "general" }] }
+   { "mode": "chain", "tasks": [
+     { "description": "Find all API endpoints", "prompt": "List all API routes in this project", "agent": "general" },
+     { "description": "Analyze endpoints", "prompt": "Based on these endpoints: $PREV — identify which need authentication", "agent": "general" }
+   ]}
    ```
 
-Leader mode is recommended when you want the AI to figure out the best task decomposition.
-Use parallel mode when you know exactly what tasks to run.
+3. **Parallel mode** (`mode: "parallel"`) — Manually specify exact tasks to run in parallel (up to 20). Example:
+   ```json
+   { "mode": "parallel", "tasks": [
+     { "description": "Find TODOs", "prompt": "Search for all TODO comments", "agent": "general" },
+     { "description": "Check types", "prompt": "Run type check and report errors", "agent": "general" }
+   ]}
+   ```
+
+**Recommendation**: Use `leader` mode for most tasks — it auto-analyzes the goal and picks the optimal strategy. Use `chain` when tasks depend on each other's output. Use `parallel` when you know exactly what tasks to run.
