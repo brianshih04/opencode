@@ -60,8 +60,13 @@ export const UltraPlanTool = Tool.define("ultraplan", async () => {
           },
           {
             permission: "bash" as const,
-            pattern: "*" as const,
+            pattern: "^(cat|head|tail|ls|find|grep|rg|wc|sort|uniq|diff|git log|git diff|git show|git status|file|which|echo|pwd|stat|tree|du|npm list|bun pm ls)" as const,
             action: "allow" as const,
+          },
+          {
+            permission: "bash" as const,
+            pattern: "*" as const,
+            action: "deny" as const,
           },
           {
             permission: "edit" as const,

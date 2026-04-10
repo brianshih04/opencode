@@ -74,12 +74,12 @@ async function listAllTasks(): Promise<Task[]> {
 }
 
 let nextId = 1
+let idReady: Promise<void>
 
-function generateId(): string {
-  return String(nextId++)
+function generateId(): Promise<string> {
+  return idReady.then(() => String(nextId++))
 }
 
-// Load max id on startup
 async function initIdCounter(): Promise<void> {
   const tasks = await listAllTasks()
   if (tasks.length > 0) {
@@ -88,8 +88,7 @@ async function initIdCounter(): Promise<void> {
   }
 }
 
-// Initialize on load
-initIdCounter().catch(() => {})
+idReady = initIdCounter().catch(() => {})
 
 // ─── Parameters ────────────────────────────────────────────────────
 
@@ -156,7 +155,7 @@ async function handleCreate(params: {
   blocks?: string[]
   blockedBy?: string[]
 }) {
-  const id = generateId()
+  const id = await generateId()
   const now = Date.now()
   const task: Task = {
     id,
