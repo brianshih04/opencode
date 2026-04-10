@@ -38,6 +38,15 @@
           "limit": { "context": 128000, "output": 8192 },
           "cost": { "input": 0, "output": 0 }
         },
+        "glm-5v-turbo": {
+          "name": "GLM-5V Turbo",
+          "tool_call": true,
+          "attachment": true,
+          "reasoning": true,
+          "temperature": true,
+          "limit": { "context": 128000, "output": 8192 },
+          "cost": { "input": 0, "output": 0 }
+        },
         "glm-4.7": {
           "name": "GLM-4.7",
           "tool_call": true,
@@ -71,6 +80,14 @@
     "general": {
       "model": "zai/glm-4.7",
       "description": "輕量助手 — 成本最低，處理日常對話、文案潤飾、簡單 Git 指令。不浪費高端 Token。"
+    },
+    "explore": {
+      "model": "zai/glm-5v-turbo",
+      "description": "視覺探索者 — 支援圖片輸入，快速搜尋 codebase、分析截圖與架構圖。"
+    },
+    "ultraplan": {
+      "model": "zai/glm-5.1",
+      "description": "深度規劃師 — 複雜多步驟任務的結構化規劃，含風險評估、依賴分析與驗證標準。"
     }
   },
   "permission": {
