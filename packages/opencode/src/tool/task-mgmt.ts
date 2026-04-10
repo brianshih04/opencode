@@ -1,6 +1,6 @@
 import z from "zod"
 import { Tool } from "./tool"
-import DESCRIPTION from "./task.txt"
+import DESCRIPTION from "./task-mgmt.txt"
 import { Log } from "../util/log"
 import path from "path"
 import os from "os"

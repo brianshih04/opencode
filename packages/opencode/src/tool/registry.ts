@@ -33,6 +33,8 @@ import { ApplyPatchTool } from "./apply_patch"
 import { UltraPlanTool } from "./ultraplan"
 import { ToolSearchTool } from "./tool_search"
 import { CronTool } from "./cron"
+import { CronScheduler as Cron } from "./cron"
+Cron.startScheduler()
 import { MemoryTool } from "./memory"
 import { Glob } from "../util/glob"
 import path from "path"

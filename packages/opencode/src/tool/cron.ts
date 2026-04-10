@@ -3,8 +3,7 @@ import path from "path"
 import fs from "fs"
 import os from "os"
 import z from "zod"
-
-const DESCRIPTION = fs.readFileSync(path.join(__dirname, "cron.txt"), "utf-8")
+import DESCRIPTION from "./cron.txt"
 
 // ---- Cron Expression Parser (minimal, 5-field) ----
 function parseCron(expr: string): number[][] | null {
@@ -194,9 +193,38 @@ export const CronTool = Tool.define("cron", async (): Promise<Tool.DefWithoutID<
 }))
 
 // Export helpers for scheduler integration
+let schedulerInterval: ReturnType<typeof setInterval> | null = null
+
+function startScheduler(): void {
+  if (schedulerInterval) return
+  const CHECK_INTERVAL_MS = 60_000
+
+  schedulerInterval = setInterval(() => {
+    try {
+      const tasks = readTasks()
+      const now = new Date()
+      let changed = false
+      for (const task of tasks) {
+        const parsed = parseCron(task.cron)
+        if (!parsed) continue
+        if (matchesCron(parsed, now)) {
+          task.lastFiredAt = Date.now()
+          if (!task.recurring) {
+            const idx = tasks.indexOf(task)
+            if (idx >= 0) tasks.splice(idx, 1)
+          }
+          changed = true
+        }
+      }
+      if (changed) writeTasks(tasks)
+    } catch {}
+  }, CHECK_INTERVAL_MS)
+}
+
 export const CronScheduler = {
   parseCron,
   matchesCron,
   readTasks,
   writeTasks,
+  startScheduler,
 }
