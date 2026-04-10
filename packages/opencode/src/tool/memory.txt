@@ -1,0 +1,17 @@
+Read, write, and manage persistent memory files.
+
+Use this tool to:
+- Record important decisions and their rationale
+- Save lessons learned from debugging
+- Store project context and preferences
+- Create structured notes for future reference
+
+Memory files are stored in ~/.opencode/memory/ and persist across sessions.
+Categories: decisions/, lessons/, context/, auto/
+
+Commands:
+- list: Show all memory categories and files
+- view: Read a memory file or directory contents
+- write: Create or overwrite a memory file
+- append: Add content to an existing memory file
+- delete: Remove a memory file or directory

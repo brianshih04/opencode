@@ -19,6 +19,7 @@ import { Plugin } from "../plugin"
 import { ProviderID, type ModelID } from "../provider/schema"
 import { WebSearchTool } from "./websearch"
 import { MemorySearchTool } from "./memory_search"
+import { MemoryTool } from "./memory"
 import { SwarmTool } from "./swarm"
 import { SendMessageTool } from "./send_message"
 import { BrowserTool } from "./browser"
@@ -32,6 +33,7 @@ import { ApplyPatchTool } from "./apply_patch"
 import { UltraPlanTool } from "./ultraplan"
 import { ToolSearchTool } from "./tool_search"
 import { CronTool } from "./cron"
+import { MemoryTool } from "./memory"
 import { Glob } from "../util/glob"
 import path from "path"
 import { pathToFileURL } from "url"
@@ -159,6 +161,7 @@ export namespace ToolRegistry {
                 TodoWriteTool,
                 WebSearchTool,
                 MemorySearchTool,
+                MemoryTool,
                 SwarmTool,
                 SendMessageTool,
                 BrowserTool,
@@ -172,6 +175,7 @@ export namespace ToolRegistry {
                 ...(Flag.OPENCODE_EXPERIMENTAL_ULTRAPLAN ? [UltraPlanTool] : []),
                 ToolSearchTool,
                 CronTool,
+                MemoryTool,
               ],
               build,
               { concurrency: "unbounded" },

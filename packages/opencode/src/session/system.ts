@@ -73,4 +73,10 @@ export namespace SystemPrompt {
       Skill.fmt(list, { verbose: true }),
     ].join("\n")
   }
+
+  export async function recentMemory(): Promise<string | undefined> {
+    const { AutoMemory } = await import("../memory")
+    const text = await AutoMemory.recentSummaries(3)
+    return text || undefined
+  }
 }

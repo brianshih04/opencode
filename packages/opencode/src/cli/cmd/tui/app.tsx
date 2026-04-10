@@ -191,6 +191,19 @@ export function tui(input: {
     }
 
     const onBeforeExit = async () => {
+      try {
+        const { Session } = await import("@/session")
+        const sessions = await Session.list()
+        if (sessions.length > 0) {
+          const last = sessions[sessions.length - 1]
+          if (last) {
+            const { AutoMemory } = await import("@/memory")
+            await AutoMemory.recordSessionSummary(last.id)
+          }
+        }
+      } catch {
+        // best-effort, don't block exit
+      }
       await TuiPluginRuntime.dispose()
     }
 

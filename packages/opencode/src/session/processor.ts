@@ -486,7 +486,16 @@ export namespace SessionProcessor {
             if (ctx.needsCompaction) return "compact"
             if (ctx.blocked || ctx.assistantMessage.error || aborted) return "stop"
             return "continue"
-          }).pipe(Effect.onInterrupt(() => abort().pipe(Effect.asVoid)))
+          }).pipe(
+            // Auto-record session summary to memory/auto/
+            Effect.tap(() =>
+              Effect.async<void>((resume) => {
+                const { AutoMemory } = require("../memory") as typeof import("../memory")
+                AutoMemory.recordSessionSummary(ctx.sessionID).then(() => resume(Effect.void), () => resume(Effect.void))
+              }),
+            ),
+            Effect.onInterrupt(() => abort().pipe(Effect.asVoid)),
+          )
         })
 
         return {

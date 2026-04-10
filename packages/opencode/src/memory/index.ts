@@ -37,8 +37,8 @@ function runMempalace(...args: string[]): string {
 
 // ---- Dream Lock State ----
 interface DreamLock {
-  lastConsolidatedAt: number  // unix ms timestamp
-  sessionCount: number        // sessions seen since last consolidation
+  lastConsolidatedAt: number // unix ms timestamp
+  sessionCount: number // sessions seen since last consolidation
 }
 
 const LOCK_FILE = () => path.join(stateDir(), "dream-lock.json")
@@ -208,6 +208,238 @@ export namespace Memory {
       if (content) return content
     } catch {}
     return ""
+  }
+}
+
+// ---- AutoMemory Namespace ----
+export namespace AutoMemory {
+  const autoMemoryDir = path.join(stateDir(), "memory", "auto")
+  const autoLog = Log.create({ service: "auto-memory" })
+
+  async function ensureAutoMemoryDir(): Promise<void> {
+    try {
+      const fs = await import("fs/promises")
+      await fs.mkdir(autoMemoryDir, { recursive: true })
+    } catch (e) {
+      autoLog.info("failed to create auto memory dir", { error: String(e) })
+    }
+  }
+
+  export async function recordSessionSummary(sessionID: SessionID): Promise<void> {
+    try {
+      const fs = await import("fs/promises")
+
+      let messages: any[]
+      try {
+        messages = await Session.messages({ sessionID })
+      } catch {
+        autoLog.info("failed to get session messages", { sessionID })
+        return
+      }
+
+      if (!messages || messages.length < 3) {
+        autoLog.info("skipping session summary (too few messages)", { sessionID, count: messages?.length ?? 0 })
+        return
+      }
+
+      const toolCalls = new Map<string, { success: number; fail: number }>()
+      const filesModified = new Set<string>()
+      const keyDecisions: string[] = []
+
+      for (const msg of messages) {
+        for (const part of msg.parts || []) {
+          if (part.type === "tool") {
+            const toolName = part.tool
+            if (!toolCalls.has(toolName)) {
+              toolCalls.set(toolName, { success: 0, fail: 0 })
+            }
+            if (part.state.status === "completed") {
+              toolCalls.get(toolName)!.success++
+            } else if (part.state.status === "error") {
+              toolCalls.get(toolName)!.fail++
+            }
+
+            const metadata = part.state.metadata || {}
+            if (metadata.path) {
+              filesModified.add(metadata.path as string)
+            }
+          }
+        }
+      }
+
+      const userMessages = messages.filter((m) => m.role === "user")
+      const summaryLines: string[] = []
+
+      if (userMessages.length > 0) {
+        summaryLines.push(`## Summary`)
+        const firstUserMsg = userMessages[0]
+        const text = firstUserMsg.parts.find((p: any) => p.type === "text")?.text || ""
+        summaryLines.push(text.substring(0, 200) + (text.length > 200 ? "..." : ""))
+        summaryLines.push("")
+      }
+
+      if (toolCalls.size > 0) {
+        summaryLines.push(`## Tools Used`)
+        for (const [name, stats] of toolCalls.entries()) {
+          const total = stats.success + stats.fail
+          summaryLines.push(
+            `- ${name}: ${total} call${total > 1 ? "s" : ""} (${stats.success} success, ${stats.fail} fail)`,
+          )
+        }
+        summaryLines.push("")
+      }
+
+      if (filesModified.size > 0) {
+        summaryLines.push(`## Files Modified`)
+        for (const file of Array.from(filesModified).sort()) {
+          summaryLines.push(`- ${file}`)
+        }
+        summaryLines.push("")
+      }
+
+      const date = new Date().toISOString()
+      const content = `# Session ${sessionID}
+Date: ${date}
+
+${summaryLines.join("\n")}
+`
+
+      await ensureAutoMemoryDir()
+      const summaryFile = path.join(autoMemoryDir, `${sessionID}.md`)
+      await fs.writeFile(summaryFile, content, "utf-8")
+
+      autoLog.info("session summary recorded", { sessionID, file: summaryFile })
+    } catch (e) {
+      autoLog.info("failed to record session summary", { sessionID, error: String(e) })
+    }
+  }
+
+  export async function recordAction(action: string, detail: string): Promise<void> {
+    autoLog.info("action recorded", { action, detail })
+  }
+}
+
+// ---- Auto-Memory (session summaries) ----
+export namespace AutoMemory {
+  const autoDir = () => path.join(stateDir(), "memory", "auto")
+  const autoLog = Log.create({ service: "auto-memory" })
+
+  export async function recordSessionSummary(sessionID: SessionID): Promise<void> {
+    let messages: any[]
+    try {
+      messages = await Session.messages({ sessionID })
+    } catch {
+      return
+    }
+
+    if (!messages || messages.length < 3) return
+
+    try {
+      const fs = await import("fs/promises")
+      await fs.mkdir(autoDir(), { recursive: true })
+
+      // Extract tool call stats
+      const toolStats: Record<string, { count: number; success: number; fail: number }> = {}
+      const filesModified = new Set<string>()
+      const userMessages: string[] = []
+      const decisions: string[] = []
+
+      for (const msg of messages) {
+        const role = msg.role as string
+        const content = msg.content || msg.text || ""
+
+        if (role === "user") {
+          const text = typeof content === "string" ? content : JSON.stringify(content)
+          if (text.trim()) userMessages.push(text.slice(0, 200))
+        }
+
+        // Parse tool calls from assistant messages
+        if (role === "assistant") {
+          const parts = Array.isArray(content) ? content : []
+          for (const part of parts) {
+            if (part.type === "tool_use" && part.name) {
+              const name = part.name
+              if (!toolStats[name]) toolStats[name] = { count: 0, success: 0, fail: 0 }
+              toolStats[name].count++
+            }
+          }
+        }
+
+        // Parse tool results
+        if (role === "tool" || content?.type === "tool_result") {
+          const toolName = content?.tool_use_id || msg.toolName || ""
+          const isError = content?.is_error || content?.type === "tool_result" && content?.content?.[0]?.type === "text" && content?.content?.[0]?.text?.includes("Error")
+          if (toolName && toolStats[toolName]) {
+            if (isError) toolStats[toolName].fail++
+            else toolStats[toolName].success++
+          }
+        }
+
+        // Extract file paths from tool use
+        if (typeof content === "string") {
+          const fileMatch = content.match(/(?:write|edit|create|modify)\s+[`"']?([\w/.\-_]+\.[\w]+)[`"']?/i)
+          if (fileMatch) filesModified.add(fileMatch[1])
+        }
+      }
+
+      // Build summary
+      const date = new Date().toISOString()
+      const toolLines = Object.entries(toolStats)
+        .map(([name, s]) => `- ${name}: ${s.count} calls (${s.success} success, ${s.fail} fail)`)
+        .join("\n")
+      const fileLines = [...filesModified].map((f) => `- ${f}`).join("\n")
+      const userLines = userMessages.slice(0, 5).map((m) => `- ${m.slice(0, 100)}`).join("\n")
+
+      const summary = [
+        `# Session ${sessionID}`,
+        `Date: ${date}`,
+        "",
+        "## Summary",
+        `User sent ${userMessages.length} messages. Tools used: ${Object.keys(toolStats).join(", ") || "none"}.`,
+        "",
+        "## User Messages",
+        userLines || "(none)",
+        "",
+        "## Tools Used",
+        toolLines || "(none)",
+        "",
+        ...(filesModified.size > 0 ? ["## Files Modified", fileLines, ""] : []),
+        ...(decisions.length > 0 ? ["## Key Decisions", ...decisions.map((d) => `- ${d}`), ""] : []),
+      ].join("\n")
+
+      await fs.writeFile(path.join(autoDir(), `${sessionID}.md`), summary, "utf-8")
+      autoLog.info("session summary recorded", { sessionID })
+    } catch (e) {
+      autoLog.info("failed to record session summary", { sessionID, error: String(e) })
+    }
+  }
+
+  /**
+   * Load the most recent N auto-memory summaries for system prompt injection.
+   */
+  export async function recentSummaries(n: number = 3): Promise<string> {
+    try {
+      const fs = await import("fs/promises")
+      await fs.mkdir(autoDir(), { recursive: true })
+      const files = await fs.readdir(autoDir())
+      if (files.length === 0) return ""
+
+      // Sort by modification time descending
+      const withTime = await Promise.all(
+        files.map(async (f) => ({
+          name: f,
+          mtime: (await fs.stat(path.join(autoDir(), f))).mtimeMs,
+        })),
+      )
+      withTime.sort((a, b) => b.mtime - a.mtime)
+
+      const recent = withTime.slice(0, n)
+      const summaries = await Promise.all(recent.map((r) => fs.readFile(path.join(autoDir(), r.name), "utf-8")))
+
+      return ["## Recent Memory", "", ...summaries.map((s) => s + "\n---")].join("\n")
+    } catch {
+      return ""
+    }
   }
 }
 
