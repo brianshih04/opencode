@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "zai/glm-5-turbo",
+  "model": "zai/glm-4.7",
   "provider": {
     "opencode": {
       "options": {},
