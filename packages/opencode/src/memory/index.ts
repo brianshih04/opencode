@@ -1,6 +1,8 @@
 import { Log } from "@/util/log"
 import { Session } from "@/session"
 import { SessionID } from "@/session/schema"
+import { Bus } from "@/bus"
+import { SessionCompaction } from "@/session/compaction"
 import path from "path"
 import os from "os"
 
@@ -86,4 +88,27 @@ export namespace Memory {
       await fs.unlink(tmpFile).catch(() => {})
     } catch {}
   }
+
+  /**
+   * Subscribe to session.compacted events and auto-trigger dream.
+   * Call this once during initialization.
+   */
+  export function initDreamOnCompaction(): void {
+    try {
+      Bus.subscribe(SessionCompaction.Event.Compacted, (event) => {
+        const sessionID = event.properties.sessionID
+        log.info("compaction detected, triggering dream", { sessionID })
+        // Fire-and-forget: don't block compaction
+        dream(sessionID).catch((err) => {
+          log.info("dream error", { sessionID, error: String(err) })
+        })
+      })
+      log.info("dream-on-compaction listener registered")
+    } catch (err) {
+      log.info("failed to register dream listener", { error: String(err) })
+    }
+  }
 }
+
+// Auto-initialize dream on compaction when this module is loaded
+Memory.initDreamOnCompaction()
