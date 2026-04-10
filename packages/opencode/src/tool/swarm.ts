@@ -1,6 +1,5 @@
 import z from "zod"
 import { Tool } from "./tool"
-import type { SessionID } from "../session/schema"
 import DESCRIPTION from "./swarm.txt"
 import { Session } from "../session"
 import { Agent } from "../agent/agent"
