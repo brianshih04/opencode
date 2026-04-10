@@ -195,6 +195,20 @@ export namespace Memory {
       log.info("failed to register dream listener", { error: String(err) })
     }
   }
+
+  /**
+   * Load agent-specific memory file.
+   * Returns the content of ~/.opencode/agent-memory/<agentName>/MEMORY.md if it exists.
+   */
+  export function agentMemory(agentName: string): string {
+    try {
+      const memFile = path.join(stateDir(), "agent-memory", agentName, "MEMORY.md")
+      const data = require("fs").readFileSync(memFile, "utf-8")
+      const content = data.trim()
+      if (content) return content
+    } catch {}
+    return ""
+  }
 }
 
 // Auto-initialize dream on compaction when this module is loaded

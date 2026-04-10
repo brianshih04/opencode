@@ -1507,6 +1507,15 @@ NOTE: At any point in time through this workflow you should feel free to ask the
                   Effect.promise(() => MessageV2.toModelMessages(msgs, model)),
                 ])
                 const system = [...env, ...(skills ? [skills] : []), ...instructions]
+
+                // Agent memory injection
+                try {
+                  const { Memory } = require("@/memory")
+                  const agentMem = Memory.agentMemory(agent.name)
+                  if (agentMem) {
+                    system.push(`## Agent Memory (${agent.name})\nPersistent memory for the ${agent.name} agent. Update via write tool to ~/.opencode/agent-memory/${agent.name}/MEMORY.md\n\n${agentMem}`)
+                  }
+                } catch {}
                 const format = lastUser.format ?? { type: "text" as const }
                 if (format.type === "json_schema") system.push(STRUCTURED_OUTPUT_SYSTEM_PROMPT)
                 const result = yield* handle.process({
