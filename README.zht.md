@@ -116,8 +116,34 @@ opencode D:\Projects\my-project
 透過 [MemPalace](https://github.com/user/mempalace) 實現長期記憶。
 - 啟動時自動注入 L0+L1 語境到系統提示詞
 - `memory_search` 工具可查詢過往對話與專案知識
-- Session 壓縮時自動觸發 `dream()`，將對話內容存入記憶庫
+- **autoDream 雙閘門**：時間閘門（≥24 小時）+ Session 閘門（≥5 次壓縮）— 每次 session 增量 mining，雙閘門通過才跑完整整理
+- Dream 狀態持久化到 `~/.opencode/dream-lock.json`
 - 多來源：對話、程式碼、文件都可以 mining
+
+#### 🤖 Agent 記憶
+
+每個 Agent 擁有獨立的持久記憶檔案：
+- 存放在 `~/.opencode/agent-memory/<agentName>/MEMORY.md`
+- Session 啟動時自動注入系統提示詞
+- Agent 可用標準 `write` 工具讀寫自己的記憶
+- 跨 Session 持久保存 — Agent 會隨時間學習和記住
+
+#### 🔍 工具搜尋
+
+在執行時動態發現可用工具：
+- 關鍵字搜尋 27 個工具的名稱和描述
+- `select:name1,name2` 直接選取指定工具
+- 加權評分：名稱匹配 (10) > 名稱片段 (5) > 描述詞彙 (3)
+- 回傳工具名稱、描述和使用提示
+
+#### ⏰ 排程任務
+
+建立週期性或一次性排程：
+- 標準 5 欄 cron 表達式（`分 時 日 月 週`）
+- 建立/列表/刪除操作
+- 任務持久化到 `~/.opencode/cron-tasks.json`
+- 一次性任務觸發後自動刪除
+- 最多 50 個任務
 
 #### 🐝 Swarm 平行 Agent
 

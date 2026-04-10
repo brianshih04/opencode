@@ -116,8 +116,34 @@ opencode D:\Projects\my-project
 Long-term memory via [MemPalace](https://github.com/user/mempalace).
 - Auto-injects L0+L1 context into system prompt on startup
 - `memory_search` tool for querying past conversations and project knowledge
-- Auto-trigger `dream()` on session compaction — mines conversation transcripts into memory palace
+- **autoDream with dual gates**: Time Gate (≥24h) + Session Gate (≥5 compactions) — incremental mining every session, full consolidation when both gates pass
+- Dream state persisted to `~/.opencode/dream-lock.json`
 - Multi-source: conversations, code, documents can all be mined
+
+#### 🤖 Agent Memory
+
+Each agent has its own persistent memory file:
+- Stored at `~/.opencode/agent-memory/<agentName>/MEMORY.md`
+- Auto-injected into system prompt at session start
+- Agents can read/write their memory using the standard `write` tool
+- Survives across sessions — agents learn and remember over time
+
+#### 🔍 Tool Search
+
+Discover available tools at runtime:
+- Keyword search across 27 tools by name and description
+- `select:name1,name2` for direct tool selection
+- Weighted scoring: name match (10) > name part (5) > description word (3)
+- Returns tool name, description, and usage hints
+
+#### ⏰ Cron Scheduler
+
+Schedule recurring or one-shot tasks:
+- Standard 5-field cron expressions (`M H DoM Mon DoW`)
+- Create/list/delete actions
+- Task persistence to `~/.opencode/cron-tasks.json`
+- One-shot tasks auto-delete after firing
+- Up to 50 tasks maximum
 
 #### 🐝 Swarm Parallel Agents
 

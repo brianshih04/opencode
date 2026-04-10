@@ -2,6 +2,46 @@
 
 All notable changes to this fork of OpenCode will be documented in this file.
 
+## [0.4.0] - 2026-04-10
+
+### Added
+
+#### 🔍 Tool Search
+- `tool_search` tool — discover available tools by keyword or `select:` prefix
+- 27 tools in static catalog with weighted scoring
+- Name match (+10/+5), description match (+3/+1)
+
+#### 🧠 autoDream Dual Gates
+- **Time Gate**: ≥24 hours since last consolidation
+- **Session Gate**: ≥5 session compactions since last consolidation
+- Incremental mining every session; full consolidation only when both gates pass
+- Dream state persisted to `~/.opencode/dream-lock.json`
+- Inspired by Claude Code's autoDream architecture
+
+#### 🤖 Agent Memory
+- Per-agent persistent memory at `~/.opencode/agent-memory/<agentName>/MEMORY.md`
+- Auto-injected into system prompt at session start
+- Agents can update their memory using the standard `write` tool
+- Survives across sessions — agents accumulate knowledge over time
+
+#### ⏰ Cron Scheduler
+- `cron` tool with create/list/delete actions
+- 5-field cron expression parser (M H DoM Mon DoW)
+- Supports wildcards, ranges, steps, and comma-separated values
+- Task persistence to `~/.opencode/cron-tasks.json`
+- One-shot (recurring: false) auto-delete after firing
+- Up to 50 tasks maximum
+
+#### 🧪 Tests
+- 35 tests passing across 3 test files
+- `cron.test.ts` — cron parser (14 tests)
+- `dream-gates.test.ts` — autoDream gate logic (12 tests)
+- `agent-memory.test.ts` — agent memory CRUD (9 tests)
+
+### Changed
+- Default model for hidden agents (compaction/title/summary) set to `zai/glm-4.7`
+- MemPalace dream now dual-gated instead of firing on every compaction
+
 ## [0.3.0] - 2026-04-10
 
 ### Changed
