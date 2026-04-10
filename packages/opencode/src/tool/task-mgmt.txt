@@ -1,0 +1,24 @@
+Create, update, list, and get tasks in a persistent task list.
+
+Use this tool to track progress on complex multi-step work, especially when coordinating multiple agents in a swarm.
+
+**Actions:**
+
+- `create` — Create a new task with subject, description, dependencies (blocks/blockedBy)
+- `update` — Update task status (pending/in_progress/completed/deleted), owner, description, etc.
+- `list` — List all tasks, optionally filtered by status or owner
+- `get` — Get full details of a specific task
+
+**Status workflow:** pending → in_progress → completed (or deleted)
+
+**Dependencies:** Use `blocks` and `blockedBy` to create task dependencies. When a task is completed, its blocked tasks are automatically unblocked.
+
+**Team coordination:** Tasks can be assigned to agents via `owner`. Teammates should check TaskList for available work after completing their current task.
+
+**Examples:**
+```json
+{ "action": "create", "subject": "Fix auth bug", "description": "The login flow fails when...", "blockedBy": ["1"] }
+{ "action": "update", "id": "1", "status": "in_progress", "owner": "general" }
+{ "action": "update", "id": "1", "status": "completed" }
+{ "action": "list", "status": "pending" }
+```

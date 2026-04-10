@@ -1,5 +1,15 @@
-Send a message to another agent teammate or broadcast to the team.
+Send a message to a teammate agent or broadcast to the entire team.
 
-Use this tool when running as part of a swarm/team to communicate findings, share results, or coordinate work with other agents.
+Use this tool when running as part of a swarm team to communicate findings, share results, coordinate work, or request help from other agents.
 
-Set `to` to a specific agent name to send a direct message, or "*" to broadcast to all team members.
+**Recipient options:**
+- Specific agent name (e.g. "general-1") — sends a direct message to that agent's mailbox
+- "*" — broadcasts to all teammates in the current team
+
+Messages are persisted to disk and can be read by the recipient using `get_messages`.
+
+**Example:**
+```json
+{ "to": "general-1", "message": "Found a bug in auth.ts line 42", "summary": "Auth bug found" }
+{ "to": "*", "message": "Analysis complete, proceeding to implementation", "summary": "Analysis done" }
+```
