@@ -1,6 +1,12 @@
 import z from "zod"
 import { Tool } from "./tool"
 import DESCRIPTION from "./memory_search.txt"
+import path from "path"
+import os from "os"
+
+function mempalacePath(): string {
+  return process.env.MEMPALACE_PATH || path.join(os.homedir(), ".mempalace", "palace")
+}
 
 const Parameters = z.object({
   query: z.string().describe("Search query for long-term memory"),
@@ -20,10 +26,11 @@ export const MemorySearchTool = Tool.define("memory_search", async () => {
       if (params.n_results) args.push("--n-results", String(params.n_results))
 
       try {
-        const proc = Bun.spawnSync(["python", ...args], {
+        const proc = Bun.spawnSync(["python3", ...args], {
           stdout: "pipe",
           stderr: "pipe",
           timeout: 15_000,
+          env: { ...process.env, MEMPALACE_PATH: mempalacePath(), PYTHONIOENCODING: "utf-8" },
         })
 
         if (proc.exitCode !== 0) {

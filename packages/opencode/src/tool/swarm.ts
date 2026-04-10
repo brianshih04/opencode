@@ -1,5 +1,6 @@
 import z from "zod"
 import { Tool } from "./tool"
+import type { SessionID } from "../session/schema"
 import DESCRIPTION from "./swarm.txt"
 import { Session } from "../session"
 import { Agent } from "../agent/agent"
@@ -265,7 +266,7 @@ export const SwarmTool = Tool.define("swarm", async () => {
 
 async function executeLeaderMode(
   params: { goal: string; max_tasks?: number; agent?: string; strategy?: "depth-first" | "breadth-first" | "auto" },
-  ctx: any,
+  ctx: Tool.Context,
 ) {
   const maxTasks = params.max_tasks ?? 20
   const agentName = params.agent ?? "general"
@@ -387,7 +388,7 @@ async function executeLeaderMode(
 
 async function executeChainMode(
   params: { tasks: Array<{ description: string; prompt: string; agent?: string }> },
-  ctx: any,
+  ctx: Tool.Context,
 ) {
   log.info("swarm chain mode", { taskCount: params.tasks.length })
 
@@ -467,7 +468,7 @@ async function synthesizeResults(
   subtasks: Array<{ description: string; prompt: string }>,
   results: PromiseSettledResult<any>[],
   rawOutput: string,
-  ctx: { sessionID: string; agent: string; model: any },
+  ctx: { sessionID: string; agent: string; model: { modelID: string; providerID: string } },
 ): Promise<string> {
   try {
     const synthPrompt = `You are a Team Lead synthesizing results from your team.
@@ -515,7 +516,7 @@ SYNTHESIZE NOW:`
 
 async function executeParallelMode(
   params: { tasks: Array<{ description: string; prompt: string; agent: string }> },
-  ctx: any,
+  ctx: Tool.Context,
 ) {
   log.info("swarm parallel mode", { taskCount: params.tasks.length })
 

@@ -180,9 +180,12 @@ export namespace Memory {
    * Subscribe to session.compacted events and auto-trigger dream.
    * Call this once during initialization.
    */
+  let dreamUnsubscribe: (() => void) | null = null
+
   export function initDreamOnCompaction(): void {
+    if (dreamUnsubscribe) return
     try {
-      Bus.subscribe(SessionCompaction.Event.Compacted, (event) => {
+      dreamUnsubscribe = Bus.subscribe(SessionCompaction.Event.Compacted, (event) => {
         const sessionID = event.properties.sessionID
         log.info("compaction detected, triggering dream", { sessionID })
         // Fire-and-forget: don't block compaction
@@ -193,6 +196,13 @@ export namespace Memory {
       log.info("dream-on-compaction listener registered")
     } catch (err) {
       log.info("failed to register dream listener", { error: String(err) })
+    }
+  }
+
+  export function stopDreamOnCompaction(): void {
+    if (dreamUnsubscribe) {
+      dreamUnsubscribe()
+      dreamUnsubscribe = null
     }
   }
 
