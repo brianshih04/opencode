@@ -3,6 +3,7 @@ import { Session } from "@/session"
 import { SessionID } from "@/session/schema"
 import { Bus } from "@/bus"
 import { SessionCompaction } from "@/session/compaction"
+import { MessageV2 } from "@/session/message-v2"
 import path from "path"
 import os from "os"
 
@@ -85,7 +86,7 @@ export namespace Memory {
 
   /** Mine session transcript into palace */
   async function mineTranscript(sessionID: SessionID): Promise<void> {
-    let messages: any[]
+    let messages: MessageV2.WithParts[]
     try {
       messages = await Session.messages({ sessionID })
     } catch {
@@ -95,7 +96,7 @@ export namespace Memory {
     if (!messages || messages.length < 2) return
 
     const transcript = messages
-      .map((m: any) => {
+      .map((m) => {
         const role = m.role === "user" ? "> " : ""
         const text = m.content || m.text || JSON.stringify(m)
         return `${role}${text}`
@@ -239,7 +240,7 @@ export namespace AutoMemory {
     try {
       const fs = await import("fs/promises")
 
-      let messages: any[]
+      let messages: MessageV2.WithParts[]
       try {
         messages = await Session.messages({ sessionID })
       } catch {
@@ -283,7 +284,7 @@ export namespace AutoMemory {
       if (userMessages.length > 0) {
         summaryLines.push(`## Summary`)
         const firstUserMsg = userMessages[0]
-        const text = firstUserMsg.parts.find((p: any) => p.type === "text")?.text || ""
+        const text = firstUserMsg.parts.find((p) => p.type === "text")?.text || ""
         summaryLines.push(text.substring(0, 200) + (text.length > 200 ? "..." : ""))
         summaryLines.push("")
       }
@@ -335,7 +336,7 @@ export namespace AutoMemory {
   const autoLog = Log.create({ service: "auto-memory" })
 
   export async function recordSessionSummary(sessionID: SessionID): Promise<void> {
-    let messages: any[]
+    let messages: MessageV2.WithParts[]
     try {
       messages = await Session.messages({ sessionID })
     } catch {

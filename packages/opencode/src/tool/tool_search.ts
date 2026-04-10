@@ -49,7 +49,7 @@ function searchTools(query: string, maxResults: number) {
     const names = selectMatch[1]!.split(",").map((s: string) => s.trim()).filter(Boolean)
     return names
       .map((name: string) => CATALOG.find(t => t.name.toLowerCase() === name))
-      .filter((t: any) => t !== undefined)
+      .filter((t): t is typeof CATALOG[number] => t !== undefined)
       .slice(0, maxResults)
   }
 
@@ -103,11 +103,11 @@ export const ToolSearchTool = Tool.define("tool_search", async (): Promise<Tool.
       }
     }
 
-    const output = results.map((t: any) => `**${t.name}**\n${t.description}`).join("\n\n")
+    const output = results.map((t) => `**${t.name}**\n${t.description}`).join("\n\n")
 
     return {
       title: `Found ${results.length} tool(s)`,
-      metadata: { query: args.query, matchCount: results.length, matches: results.map((t: any) => t.name) },
+      metadata: { query: args.query, matchCount: results.length, matches: results.map((t) => t.name) },
       output,
     }
   },

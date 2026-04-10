@@ -597,14 +597,15 @@ function formatResults(
   return header + body
 }
 
-function extractText(msg: any): string {
+function extractText(msg: unknown): string {
   if (!msg) return "(no output)"
   if (typeof msg === "string") return msg
-  if (msg.output) return msg.output
-  if (msg.parts) {
-    return msg.parts
-      .filter((p: any) => p.type === "text" && p.text)
-      .map((p: any) => p.text)
+  const m = msg as Record<string, unknown>
+  if (m.output) return String(m.output)
+  if (Array.isArray(m.parts)) {
+    return m.parts
+      .filter((p: Record<string, unknown>) => p.type === "text" && typeof p.text === "string")
+      .map((p: Record<string, unknown>) => String(p.text))
       .join("\n")
   }
   return JSON.stringify(msg).slice(0, 2000)
