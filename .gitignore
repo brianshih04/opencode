@@ -29,3 +29,10 @@ UPCOMING_CHANGELOG.md
 logs/
 *.bun-build
 tsconfig.tsbuildinfo
+
+# Dev scratch files
+PORT-PLAN.md
+entities.json
+mempalace.yaml
+task_prompt.txt
+tmp_prompt.md
