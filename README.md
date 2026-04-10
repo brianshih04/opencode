@@ -157,21 +157,27 @@ Control Chrome via [OpenCLI](https://github.com/brianshih04/opencli) daemon + ex
 
 #### 🤖 Per-Agent Model Configuration
 
-Assign different LLM models to different agents:
+Assign different LLM models to different agents for optimal cost/performance:
 
-| Agent | Model | Purpose |
-|-------|-------|---------|
-| **build** | zai/glm-5 | Main development |
-| **plan** | zai/glm-4.7-flash | Fast read-only analysis |
-| **general** | zai/glm-5-turbo | Sub-agent parallel tasks |
+| Agent | Model | Role | Mode |
+|-------|-------|------|------|
+| **plan** | zai/glm-5.1 | 🧠 Flagship brain — architecture & long-horizon planning | Primary, read-only |
+| **build** | zai/glm-5-turbo | ⚡ Efficiency engine — fast code gen & tool calls | Primary, full access |
+| **review** | zai/glm-5 | 🛡️ Strict gatekeeper — bug detection & logic review | Subagent, read-only |
+| **explore** | zai/glm-5v-turbo | 👁️ Visual explorer — codebase search with image support | Subagent |
+| **ultraplan** | zai/glm-5.1 | 📋 Deep planner — structured plans with risk assessment | Subagent, read-only |
+| **general** | zai/glm-4.7 | 💡 Lightweight assistant — daily tasks, git ops | Subagent |
 
 Configure in `.opencode/opencode.jsonc`:
 ```jsonc
 {
   "agent": {
-    "build": { "model": "zai/glm-5" },
-    "plan": { "model": "zai/glm-4.7-flash" },
-    "general": { "model": "zai/glm-5-turbo" }
+    "plan": { "model": "zai/glm-5.1" },
+    "build": { "model": "zai/glm-5-turbo" },
+    "review": { "model": "zai/glm-5" },
+    "explore": { "model": "zai/glm-5v-turbo" },
+    "ultraplan": { "model": "zai/glm-5.1" },
+    "general": { "model": "zai/glm-4.7" }
   }
 }
 ```

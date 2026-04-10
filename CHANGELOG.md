@@ -2,6 +2,25 @@
 
 All notable changes to this fork of OpenCode will be documented in this file.
 
+## [0.3.0] - 2026-04-10
+
+### Changed
+- **Redesigned agent model mapping** for optimal cost/performance:
+  - Plan → glm-5.1 (flagship brain for architecture)
+  - Build → glm-5-turbo (fast code gen & tool calls)
+  - Review → glm-5 (strict gatekeeper, new subagent)
+  - Explore → glm-5v-turbo (vision-capable explorer)
+  - Ultraplan → glm-5.1 (deep planning)
+  - General → glm-4.7 (lightweight assistant)
+
+### Added
+- **glm-5.1** model — z.ai flagship for long-horizon tasks
+- **glm-5v-turbo** model — vision-capable (attachment: true)
+- **glm-4.7** model — cost-effective for daily tasks
+- **Review agent** — read-only subagent for bug detection and logic review
+- OpenCLI Browser Bridge extension connected and verified
+- Repo visibility set to private
+
 ## [0.2.0] - 2026-04-10
 
 ### Added

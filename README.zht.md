@@ -156,28 +156,34 @@ OpenCode 內建了兩種 Agent，您可以使用 `Tab` 鍵快速切換。
 
 #### 🤖 Agent 模型指定
 
-每個 Agent 可以指定不同的 LLM 模型：
+每個 Agent 搭配最佳模型，兼顧效能與成本：
 
-| Agent | 模型 | 用途 |
-|-------|------|------|
-| **build** | zai/glm-5 | 主力開發、修改、重構 |
-| **plan** | zai/glm-4.7-flash | 快速唯讀分析、探索 |
-| **general** | zai/glm-5-turbo | 子 Agent 平行任務 |
+| Agent | 模型 | 角色 | 模式 |
+|-------|------|------|------|
+| **plan** | zai/glm-5.1 | 🧠 最強大腦 — 架構規劃、長程任務 | Primary, 唯讀 |
+| **build** | zai/glm-5-turbo | ⚡ 效率兵工廠 — 快速代碼生成與工具調用 | Primary, 完整權限 |
+| **review** | zai/glm-5 | 🛡️ 嚴謹守門員 — 抓 Bug、檢查邏輯 | Subagent, 唯讀 |
+| **explore** | zai/glm-5v-turbo | 👁️ 視覺探索者 — 支援圖片的 Codebase 搜尋 | Subagent |
+| **ultraplan** | zai/glm-5.1 | 📋 深度規劃師 — 結構化計畫含風險評估 | Subagent, 唯讀 |
+| **general** | zai/glm-4.7 | 💡 輕量助手 — 日常任務、Git 指令 | Subagent |
 
 在 `.opencode/opencode.jsonc` 中設定：
 ```jsonc
 {
   "agent": {
-    "build": { "model": "zai/glm-5" },
-    "plan": { "model": "zai/glm-4.7-flash" },
-    "general": { "model": "zai/glm-5-turbo" }
+    "plan": { "model": "zai/glm-5.1" },
+    "build": { "model": "zai/glm-5-turbo" },
+    "review": { "model": "zai/glm-5" },
+    "explore": { "model": "zai/glm-5v-turbo" },
+    "ultraplan": { "model": "zai/glm-5.1" },
+    "general": { "model": "zai/glm-4.7" }
   }
 }
 ```
 
 #### z.ai Provider
 
-內建 z.ai 模型設定（GLM-5、GLM-5 Turbo、GLM-4.7 Flash）。
+內建 z.ai 模型設定（GLM-5.1、GLM-5、GLM-5 Turbo、GLM-5V Turbo、GLM-4.7）。
 設定環境變數 `ZAI_API_KEY` 即可啟用。
 
 #### 指令使用方式
