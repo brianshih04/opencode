@@ -633,7 +633,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
                   }),
                 )
               },
-              ask(req: Parameters<typeof App.ask>[0]) {
+              ask(req: Omit<Permission.Request, "id" | "sessionID" | "tool">) {
                 return Effect.runPromise(
                   permission.ask({
                     ...req,

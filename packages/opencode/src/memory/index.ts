@@ -97,8 +97,9 @@ export namespace Memory {
 
     const transcript = messages
       .map((m) => {
-        const role = m.role === "user" ? "> " : ""
-        const text = m.content || m.text || JSON.stringify(m)
+        const role = (m as { info?: { role?: string } }).info?.role === "user" ? "> " : ""
+        const parts = (m as { parts?: { text?: string }[] }).parts
+        const text = parts?.map((p) => p.text).filter(Boolean).join("\n") || JSON.stringify(m)
         return `${role}${text}`
       })
       .join("\n\n")
@@ -270,7 +271,7 @@ export namespace AutoMemory {
               toolCalls.get(toolName)!.fail++
             }
 
-            const metadata = part.state.metadata || {}
+            const metadata = ("metadata" in part.state ? part.state.metadata : null) || {}
             if (metadata.path) {
               filesModified.add(metadata.path as string)
             }
@@ -278,7 +279,7 @@ export namespace AutoMemory {
         }
       }
 
-      const userMessages = messages.filter((m) => m.role === "user")
+      const userMessages = messages.filter((m) => (m as { info?: { role?: string } }).info?.role === "user")
       const summaryLines: string[] = []
 
       if (userMessages.length > 0) {
@@ -328,124 +329,25 @@ ${summaryLines.join("\n")}
   export async function recordAction(action: string, detail: string): Promise<void> {
     autoLog.info("action recorded", { action, detail })
   }
-}
 
-// ---- Auto-Memory (session summaries) ----
-export namespace AutoMemory {
-  const autoDir = () => path.join(stateDir(), "memory", "auto")
-  const autoLog = Log.create({ service: "auto-memory" })
-
-  export async function recordSessionSummary(sessionID: SessionID): Promise<void> {
-    let messages: MessageV2.WithParts[]
-    try {
-      messages = await Session.messages({ sessionID })
-    } catch {
-      return
-    }
-
-    if (!messages || messages.length < 3) return
-
-    try {
-      const fs = await import("fs/promises")
-      await fs.mkdir(autoDir(), { recursive: true })
-
-      // Extract tool call stats
-      const toolStats: Record<string, { count: number; success: number; fail: number }> = {}
-      const filesModified = new Set<string>()
-      const userMessages: string[] = []
-      const decisions: string[] = []
-
-      for (const msg of messages) {
-        const role = msg.role as string
-        const content = msg.content || msg.text || ""
-
-        if (role === "user") {
-          const text = typeof content === "string" ? content : JSON.stringify(content)
-          if (text.trim()) userMessages.push(text.slice(0, 200))
-        }
-
-        // Parse tool calls from assistant messages
-        if (role === "assistant") {
-          const parts = Array.isArray(content) ? content : []
-          for (const part of parts) {
-            if (part.type === "tool_use" && part.name) {
-              const name = part.name
-              if (!toolStats[name]) toolStats[name] = { count: 0, success: 0, fail: 0 }
-              toolStats[name].count++
-            }
-          }
-        }
-
-        // Parse tool results
-        if (role === "tool" || content?.type === "tool_result") {
-          const toolName = content?.tool_use_id || msg.toolName || ""
-          const isError = content?.is_error || content?.type === "tool_result" && content?.content?.[0]?.type === "text" && content?.content?.[0]?.text?.includes("Error")
-          if (toolName && toolStats[toolName]) {
-            if (isError) toolStats[toolName].fail++
-            else toolStats[toolName].success++
-          }
-        }
-
-        // Extract file paths from tool use
-        if (typeof content === "string") {
-          const fileMatch = content.match(/(?:write|edit|create|modify)\s+[`"']?([\w/.\-_]+\.[\w]+)[`"']?/i)
-          if (fileMatch) filesModified.add(fileMatch[1])
-        }
-      }
-
-      // Build summary
-      const date = new Date().toISOString()
-      const toolLines = Object.entries(toolStats)
-        .map(([name, s]) => `- ${name}: ${s.count} calls (${s.success} success, ${s.fail} fail)`)
-        .join("\n")
-      const fileLines = [...filesModified].map((f) => `- ${f}`).join("\n")
-      const userLines = userMessages.slice(0, 5).map((m) => `- ${m.slice(0, 100)}`).join("\n")
-
-      const summary = [
-        `# Session ${sessionID}`,
-        `Date: ${date}`,
-        "",
-        "## Summary",
-        `User sent ${userMessages.length} messages. Tools used: ${Object.keys(toolStats).join(", ") || "none"}.`,
-        "",
-        "## User Messages",
-        userLines || "(none)",
-        "",
-        "## Tools Used",
-        toolLines || "(none)",
-        "",
-        ...(filesModified.size > 0 ? ["## Files Modified", fileLines, ""] : []),
-        ...(decisions.length > 0 ? ["## Key Decisions", ...decisions.map((d) => `- ${d}`), ""] : []),
-      ].join("\n")
-
-      await fs.writeFile(path.join(autoDir(), `${sessionID}.md`), summary, "utf-8")
-      autoLog.info("session summary recorded", { sessionID })
-    } catch (e) {
-      autoLog.info("failed to record session summary", { sessionID, error: String(e) })
-    }
-  }
-
-  /**
-   * Load the most recent N auto-memory summaries for system prompt injection.
-   */
+  /** Load the most recent N auto-memory summaries for system prompt injection. */
   export async function recentSummaries(n: number = 3): Promise<string> {
     try {
       const fs = await import("fs/promises")
-      await fs.mkdir(autoDir(), { recursive: true })
-      const files = await fs.readdir(autoDir())
+      await fs.mkdir(autoMemoryDir, { recursive: true })
+      const files = await fs.readdir(autoMemoryDir)
       if (files.length === 0) return ""
 
-      // Sort by modification time descending
       const withTime = await Promise.all(
         files.map(async (f) => ({
           name: f,
-          mtime: (await fs.stat(path.join(autoDir(), f))).mtimeMs,
+          mtime: (await fs.stat(path.join(autoMemoryDir, f))).mtimeMs,
         })),
       )
       withTime.sort((a, b) => b.mtime - a.mtime)
 
       const recent = withTime.slice(0, n)
-      const summaries = await Promise.all(recent.map((r) => fs.readFile(path.join(autoDir(), r.name), "utf-8")))
+      const summaries = await Promise.all(recent.map((r) => fs.readFile(path.join(autoMemoryDir, r.name), "utf-8")))
 
       return ["## Recent Memory", "", ...summaries.map((s) => s + "\n---")].join("\n")
     } catch {

@@ -489,9 +489,9 @@ export namespace SessionProcessor {
           }).pipe(
             // Auto-record session summary to memory/auto/
             Effect.tap(() =>
-              Effect.async<void>((resume) => {
-                const { AutoMemory } = require("../memory") as typeof import("../memory")
-                AutoMemory.recordSessionSummary(ctx.sessionID).then(() => resume(Effect.void), () => resume(Effect.void))
+              Effect.promise(async () => {
+                const { AutoMemory } = await import("../memory")
+                await AutoMemory.recordSessionSummary(ctx.sessionID).catch(() => {})
               }),
             ),
             Effect.onInterrupt(() => abort().pipe(Effect.asVoid)),

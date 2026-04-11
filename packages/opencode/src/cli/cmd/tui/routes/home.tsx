@@ -10,9 +10,8 @@ import { useLocal } from "../context/local"
 import { TuiPluginRuntime } from "../plugin"
 import { Installation } from "@/installation"
 import { useTheme } from "@tui/context/theme"
-import pkg from "../../../../package.json" with { type: "json" }
 
-const VERSION = pkg.version
+const VERSION = "1.4.003"
 
 // TODO: what is the best way to do this?
 let once = false

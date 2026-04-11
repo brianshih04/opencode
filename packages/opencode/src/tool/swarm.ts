@@ -4,6 +4,8 @@ import DESCRIPTION from "./swarm.txt"
 import { Session } from "../session"
 import { Agent } from "../agent/agent"
 import { SessionPrompt } from "../session/prompt"
+import { SessionID } from "../session/schema"
+import { ProviderID, ModelID } from "../provider/schema"
 import { Log } from "../util/log"
 
 const log = Log.create({ service: "tool.swarm" })
@@ -489,15 +491,18 @@ ${rawOutput}
 SYNTHESIZE NOW:`
 
     const session = await Session.create({
-      parentID: ctx.sessionID,
+      parentID: ctx.sessionID as SessionID,
       title: `Synthesis: ${goal.slice(0, 40)}`,
     })
 
     const promptParts = await SessionPrompt.resolvePromptParts(synthPrompt)
     const result = await SessionPrompt.prompt({
-      sessionID: session.id,
+      sessionID: session.id as SessionID,
       agent: ctx.agent,
-      model: ctx.model,
+      model: ctx.model ? {
+        providerID: ctx.model.providerID as ProviderID,
+        modelID: ctx.model.modelID as ModelID,
+      } : undefined,
       parts: promptParts,
     })
 

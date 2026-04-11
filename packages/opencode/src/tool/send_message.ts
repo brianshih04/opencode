@@ -198,7 +198,7 @@ async function handleBroadcast(
   return {
     output: `📢 Broadcast sent to ${agents.length} teammates: ${agents.map(a => `@${a}`).join(", ")}\nFrom: @${from}\nContent: ${content.slice(0, 500)}`,
     title: `Broadcast → ${agents.length} agents`,
-    metadata: { messageId: msgId, from, recipients: agents } as Record<string, unknown>,
+    metadata: { messageId: generateMsgId(), from, recipients: agents } as Record<string, unknown>,
   }
 }
 

@@ -1,4 +1,5 @@
 import type { Database } from "bun:sqlite"
+import type { SQLiteTable } from "drizzle-orm/sqlite-core"
 import { drizzle } from "drizzle-orm/bun-sqlite"
 import { Global } from "../global"
 import { Log } from "../util/log"
@@ -94,7 +95,7 @@ export namespace JsonMigration {
       return items
     }
 
-    function insert(values: Record<string, unknown>[], table: string, label: string) {
+    function insert(values: Record<string, unknown>[], table: SQLiteTable, label: string) {
       if (values.length === 0) return 0
       try {
         db.insert(table).values(values).onConflictDoNothing().run()

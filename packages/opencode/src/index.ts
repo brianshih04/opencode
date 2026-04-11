@@ -1,5 +1,12 @@
 // Bun global
-declare const ResolveMessage: typeof Error
+interface ResolveMessage extends Error {
+  code: string
+  specifier: string
+  referrer: string
+  position: number
+  importKind: string
+}
+declare const ResolveMessage: new (message?: string) => ResolveMessage
 
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"

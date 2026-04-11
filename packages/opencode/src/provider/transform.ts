@@ -156,7 +156,7 @@ export namespace ProviderTransform {
       return msgs.map((msg) => {
         if (msg.role === "assistant" && Array.isArray(msg.content)) {
           const reasoningParts = msg.content.filter((part: { type: string }) => part.type === "reasoning")
-          const reasoningText = reasoningParts.map((part: { text: string }) => part.text).join("")
+          const reasoningText = reasoningParts.map((part) => ("text" in part ? String((part as unknown as Record<string, unknown>).text ?? "") : "")).join("")
 
           // Filter out reasoning parts from content
           const filteredContent = msg.content.filter((part: { type: string }) => part.type !== "reasoning")
@@ -993,26 +993,26 @@ export namespace ProviderTransform {
         ].some((key) => key in node)
       }
 
-      const sanitizeGemini = (obj: Record<string, unknown>): Record<string, unknown> => {
+      const sanitizeGemini = (obj: unknown): unknown => {
         if (obj === null || typeof obj !== "object") {
           return obj
         }
 
         if (Array.isArray(obj)) {
-          return obj.map(sanitizeGemini)
+          return obj.map(sanitizeGemini) as unknown[]
         }
 
         const result: Record<string, unknown> = {}
-        for (const [key, value] of Object.entries(obj)) {
+        for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
           if (key === "enum" && Array.isArray(value)) {
             // Convert all enum values to strings
-            result[key] = value.map((v) => String(v))
+            result[key] = value.map((v: unknown) => String(v))
             // If we have integer type with enum, change type to string
             if (result.type === "integer" || result.type === "number") {
               result.type = "string"
             }
           } else if (typeof value === "object" && value !== null) {
-            result[key] = sanitizeGemini(value)
+            result[key] = sanitizeGemini(value) as Record<string, unknown>
           } else {
             result[key] = value
           }
@@ -1020,7 +1020,7 @@ export namespace ProviderTransform {
 
         // Filter required array to only include fields that exist in properties
         if (result.type === "object" && result.properties && Array.isArray(result.required)) {
-          result.required = result.required.filter((field: string) => field in result.properties)
+          result.required = (result.required as string[]).filter((field: string) => field in (result.properties as Record<string, unknown>))
         }
 
         if (result.type === "array" && !hasCombiner(result)) {
@@ -1028,7 +1028,7 @@ export namespace ProviderTransform {
             result.items = {}
           }
           // Ensure items has a type only when it's still schema-empty.
-          if (isPlainObject(result.items) && !hasSchemaIntent(result.items)) {
+          if (isPlainObject(result.items) && !hasSchemaIntent(result.items as Record<string, unknown>)) {
             result.items.type = "string"
           }
         }
@@ -1042,7 +1042,7 @@ export namespace ProviderTransform {
         return result
       }
 
-      schema = sanitizeGemini(schema)
+      schema = sanitizeGemini(schema) as Record<string, unknown>
     }
 
     return schema as JSONSchema7

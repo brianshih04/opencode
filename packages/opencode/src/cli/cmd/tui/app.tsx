@@ -193,7 +193,7 @@ export function tui(input: {
     const onBeforeExit = async () => {
       try {
         const { Session } = await import("@/session")
-        const sessions = await Session.list()
+        const sessions = [...Session.list()]
         if (sessions.length > 0) {
           const last = sessions[sessions.length - 1]
           if (last) {
