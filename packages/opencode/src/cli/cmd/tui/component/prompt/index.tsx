@@ -1,4 +1,5 @@
-import { BoxRenderable, TextareaRenderable, MouseEvent, PasteEvent, decodePasteBytes, t, dim, fg } from "@opentui/core"
+import type { BoxRenderable, TextareaRenderable, MouseEvent, PasteEvent} from "@opentui/core";
+import { decodePasteBytes, t, dim, fg } from "@opentui/core"
 import { createEffect, createMemo, onMount, createSignal, onCleanup, on, Show, Switch, Match } from "solid-js"
 import "opentui-spinner/solid"
 import path from "path"

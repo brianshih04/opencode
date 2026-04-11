@@ -1,4 +1,5 @@
-import { TextAttributes, RGBA } from "@opentui/core"
+import type { RGBA } from "@opentui/core";
+import { TextAttributes } from "@opentui/core"
 import { For, type JSX } from "solid-js"
 import { useTheme, tint } from "@tui/context/theme"
 import { logo, marks } from "@/cli/logo"

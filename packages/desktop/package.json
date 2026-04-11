@@ -1,7 +1,7 @@
 {
   "name": "@opencode-ai/desktop",
   "private": true,
-  "version": "1.4.002",
+  "version": "1.4.003",
   "type": "module",
   "license": "MIT",
   "scripts": {

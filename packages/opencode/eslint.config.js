@@ -3,7 +3,7 @@ import tsparser from "@typescript-eslint/parser"
 
 export default [
   {
-    files: ["src/**/*.ts"],
+    files: ["src/**/*.ts", "src/**/*.tsx"],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
@@ -16,18 +16,11 @@ export default [
     rules: {
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
-      "@typescript-eslint/consistent-type-imports": "error",
-      "no-console": "off",
-    },
-  },
-  // CLI commands use console.log for output — that's correct
-  {
-    files: ["src/cli/cmd/**/*.ts", "src/cli/cmd/**/*.tsx"],
-    rules: {
+      "@typescript-eslint/consistent-type-imports": ["error", { "fixStyle": "inline-type-imports", "disallowTypeAnnotations": false }],
       "no-console": "off",
     },
   },
   {
-    ignores: ["node_modules/", "dist/", "*.js"],
+    ignores: ["node_modules/", "dist/", "*.js", "*.cjs"],
   },
 ]

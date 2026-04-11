@@ -15,7 +15,7 @@
     "postinstall": "bun run --cwd packages/opencode fix-node-pty",
     "prepare": "husky",
     "test": "bun turbo test",
-    "lint": "bunx eslint packages/opencode/src"
+    "lint": "cd packages/opencode && bun node_modules/eslint/bin/eslint.js src"
   },
   "workspaces": {
     "packages": [
