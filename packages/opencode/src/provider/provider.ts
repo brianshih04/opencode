@@ -3,6 +3,8 @@ import os from "os"
 import fuzzysort from "fuzzysort"
 import { Config } from "../config/config"
 import { mapValues, mergeDeep, omit, pickBy, sortBy } from "remeda"
+import { fromModelsDevProvider as _fromModelsDevProvider } from "./models-dev-convert"
+import { shouldUseCopilotResponsesApi, wrapSSE, e2eURL, BUNDLED_PROVIDERS, useLanguageModel, type BundledSDK } from "./helpers"
 import { NoSuchModelError, type Provider as SDK } from "ai"
 import { Log } from "../util/log"
 import { Npm } from "../npm"
@@ -23,30 +25,11 @@ import { Effect, Layer, ServiceMap } from "effect"
 import { InstanceState } from "@/effect/instance-state"
 import { makeRuntime } from "@/effect/run-service"
 
-// Direct imports for bundled providers
-import { createAmazonBedrock, type AmazonBedrockProviderSettings } from "@ai-sdk/amazon-bedrock"
-import { createAnthropic } from "@ai-sdk/anthropic"
-import { createAzure } from "@ai-sdk/azure"
-import { createGoogleGenerativeAI } from "@ai-sdk/google"
-import { createVertex } from "@ai-sdk/google-vertex"
-import { createVertexAnthropic } from "@ai-sdk/google-vertex/anthropic"
-import { createOpenAI } from "@ai-sdk/openai"
+// Remaining direct imports for bundled providers (used in custom loaders and resolveSDK)
+import { type AmazonBedrockProviderSettings } from "@ai-sdk/amazon-bedrock"
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible"
-import { createOpenRouter } from "@openrouter/ai-sdk-provider"
-import { createOpenaiCompatible as createGitHubCopilotOpenAICompatible } from "./sdk/copilot"
-import { createXai } from "@ai-sdk/xai"
-import { createMistral } from "@ai-sdk/mistral"
-import { createGroq } from "@ai-sdk/groq"
-import { createDeepInfra } from "@ai-sdk/deepinfra"
-import { createCerebras } from "@ai-sdk/cerebras"
-import { createCohere } from "@ai-sdk/cohere"
-import { createGateway } from "@ai-sdk/gateway"
-import { createTogetherAI } from "@ai-sdk/togetherai"
-import { createPerplexity } from "@ai-sdk/perplexity"
-import { createVercel } from "@ai-sdk/vercel"
-import { createVenice } from "venice-ai-sdk-provider"
 import {
-  createGitLab,
+  type createGitLab,
   VERSION as GITLAB_PROVIDER_VERSION,
   isWorkflowModel,
   discoverWorkflowModels,
@@ -59,95 +42,6 @@ import { ModelID, ProviderID } from "./schema"
 
 export namespace Provider {
   const log = Log.create({ service: "provider" })
-
-  function shouldUseCopilotResponsesApi(modelID: string): boolean {
-    const match = /^gpt-(\d+)/.exec(modelID)
-    if (!match) return false
-    return Number(match[1]) >= 5 && !modelID.startsWith("gpt-5-mini")
-  }
-
-  function wrapSSE(res: Response, ms: number, ctl: AbortController) {
-    if (typeof ms !== "number" || ms <= 0) return res
-    if (!res.body) return res
-    if (!res.headers.get("content-type")?.includes("text/event-stream")) return res
-
-    const reader = res.body.getReader()
-    const body = new ReadableStream<Uint8Array>({
-      async pull(ctrl) {
-        const part = await new Promise<Awaited<ReturnType<typeof reader.read>>>((resolve, reject) => {
-          const id = setTimeout(() => {
-            const err = new Error("SSE read timed out")
-            ctl.abort(err)
-            void reader.cancel(err)
-            reject(err)
-          }, ms)
-
-          reader.read().then(
-            (part) => {
-              clearTimeout(id)
-              resolve(part)
-            },
-            (err) => {
-              clearTimeout(id)
-              reject(err)
-            },
-          )
-        })
-
-        if (part.done) {
-          ctrl.close()
-          return
-        }
-
-        ctrl.enqueue(part.value)
-      },
-      async cancel(reason) {
-        ctl.abort(reason)
-        await reader.cancel(reason)
-      },
-    })
-
-    return new Response(body, {
-      headers: new Headers(res.headers),
-      status: res.status,
-      statusText: res.statusText,
-    })
-  }
-
-  function e2eURL() {
-    const url = Env.get("OPENCODE_E2E_LLM_URL")
-    if (typeof url !== "string" || url === "") return
-    return url
-  }
-
-  type BundledSDK = {
-    languageModel(modelId: string): LanguageModelV3
-  }
-
-  const BUNDLED_PROVIDERS: Record<string, (options: any) => BundledSDK> = {
-    "@ai-sdk/amazon-bedrock": createAmazonBedrock,
-    "@ai-sdk/anthropic": createAnthropic,
-    "@ai-sdk/azure": createAzure,
-    "@ai-sdk/google": createGoogleGenerativeAI,
-    "@ai-sdk/google-vertex": createVertex,
-    "@ai-sdk/google-vertex/anthropic": createVertexAnthropic,
-    "@ai-sdk/openai": createOpenAI,
-    "@ai-sdk/openai-compatible": createOpenAICompatible,
-    "@openrouter/ai-sdk-provider": createOpenRouter,
-    "@ai-sdk/xai": createXai,
-    "@ai-sdk/mistral": createMistral,
-    "@ai-sdk/groq": createGroq,
-    "@ai-sdk/deepinfra": createDeepInfra,
-    "@ai-sdk/cerebras": createCerebras,
-    "@ai-sdk/cohere": createCohere,
-    "@ai-sdk/gateway": createGateway,
-    "@ai-sdk/togetherai": createTogetherAI,
-    "@ai-sdk/perplexity": createPerplexity,
-    "@ai-sdk/vercel": createVercel,
-    "gitlab-ai-provider": createGitLab,
-    "@ai-sdk/github-copilot": createGitHubCopilotOpenAICompatible,
-    "venice-ai-sdk-provider": createVenice,
-  }
 
   type CustomModelLoader = (sdk: any, modelID: string, options?: Record<string, any>) => Promise<any>
   type CustomVarsLoader = (options: Record<string, any>) => Record<string, string>
@@ -163,10 +57,6 @@ export namespace Provider {
   type CustomDep = {
     auth: (id: string) => Effect.Effect<Auth.Info | undefined>
     config: () => Effect.Effect<Config.Info>
-  }
-
-  function useLanguageModel(sdk: any) {
-    return sdk.responses === undefined && sdk.chat === undefined
   }
 
   function custom(dep: CustomDep): Record<string, CustomLoader> {
@@ -925,83 +815,7 @@ export namespace Provider {
 
   export class Service extends ServiceMap.Service<Service, Interface>()("@opencode/Provider") {}
 
-  function fromModelsDevModel(provider: ModelsDev.Provider, model: ModelsDev.Model): Model {
-    const m: Model = {
-      id: ModelID.make(model.id),
-      providerID: ProviderID.make(provider.id),
-      name: model.name,
-      family: model.family,
-      api: {
-        id: model.id,
-        url: model.provider?.api ?? provider.api!,
-        npm: model.provider?.npm ?? provider.npm ?? "@ai-sdk/openai-compatible",
-      },
-      status: model.status ?? "active",
-      headers: model.headers ?? {},
-      options: model.options ?? {},
-      cost: {
-        input: model.cost?.input ?? 0,
-        output: model.cost?.output ?? 0,
-        cache: {
-          read: model.cost?.cache_read ?? 0,
-          write: model.cost?.cache_write ?? 0,
-        },
-        experimentalOver200K: model.cost?.context_over_200k
-          ? {
-              cache: {
-                read: model.cost.context_over_200k.cache_read ?? 0,
-                write: model.cost.context_over_200k.cache_write ?? 0,
-              },
-              input: model.cost.context_over_200k.input,
-              output: model.cost.context_over_200k.output,
-            }
-          : undefined,
-      },
-      limit: {
-        context: model.limit.context,
-        input: model.limit.input,
-        output: model.limit.output,
-      },
-      capabilities: {
-        temperature: model.temperature,
-        reasoning: model.reasoning,
-        attachment: model.attachment,
-        toolcall: model.tool_call,
-        input: {
-          text: model.modalities?.input?.includes("text") ?? false,
-          audio: model.modalities?.input?.includes("audio") ?? false,
-          image: model.modalities?.input?.includes("image") ?? false,
-          video: model.modalities?.input?.includes("video") ?? false,
-          pdf: model.modalities?.input?.includes("pdf") ?? false,
-        },
-        output: {
-          text: model.modalities?.output?.includes("text") ?? false,
-          audio: model.modalities?.output?.includes("audio") ?? false,
-          image: model.modalities?.output?.includes("image") ?? false,
-          video: model.modalities?.output?.includes("video") ?? false,
-          pdf: model.modalities?.output?.includes("pdf") ?? false,
-        },
-        interleaved: model.interleaved ?? false,
-      },
-      release_date: model.release_date,
-      variants: {},
-    }
-
-    m.variants = mapValues(ProviderTransform.variants(m), (v) => v)
-
-    return m
-  }
-
-  export function fromModelsDevProvider(provider: ModelsDev.Provider): Info {
-    return {
-      id: ProviderID.make(provider.id),
-      source: "custom",
-      name: provider.name,
-      env: provider.env ?? [],
-      options: {},
-      models: mapValues(provider.models, (model) => fromModelsDevModel(provider, model)),
-    }
-  }
+  export const fromModelsDevProvider = _fromModelsDevProvider
 
   const layer: Layer.Layer<Service, never, Config.Service | Auth.Service | Plugin.Service> = Layer.effect(
     Service,

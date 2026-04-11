@@ -2,6 +2,54 @@
 
 All notable changes to this fork of OpenCode will be documented in this file.
 
+## [1.4.004] - 2026-04-11
+
+### Changed — Phase 1: 基礎品質強化
+
+#### 📦 依賴管理統一
+- TypeScript 版本統一：`desktop` 和 `desktop-electron` 從 `~5.6.2` 改用 `catalog:` (5.8.2)
+- 6 個套件的硬編碼依賴版本改為 `catalog:` 協議（`marked`, `@solidjs/router`, `@tsconfig/bun`）
+- 移除 `packages/opencode` 重複的 devDependencies（`@standard-schema/spec`, `zod-to-json-schema`）
+- `.editorconfig` `max_line_length` 從 80 改為 120，與 Prettier `printWidth` 一致
+
+### Changed — Phase 2: 工具鏈強化
+
+#### 🔧 ESLint 覆蓋擴充
+- 新增 4 條規則：`no-floating-promises`, `no-misused-promises`, `await-thenable`, `consistent-type-exports`
+- `no-explicit-any` 和 `no-unused-vars` 維持 `warn`，新規則初期設為 `warn` 以漸進改善
+- 修復 `tool/swarm.ts` 的 `consistent-type-imports` error
+
+#### ⚡ Turbo Pipeline 補全
+- `turbo.json` 新增通用 `lint` 和 `test` tasks（原僅覆蓋 4 個特定套件，現 19 個全識別）
+- Root `lint` script 改用 `bun turbo lint`（原僅 lint `packages/opencode`）
+- 修復 `dev:console` 在 Windows 上因 `ulimit` 失敗的問題
+
+### Changed — Phase 3: 架構優化
+
+#### 🏗️ Provider Module 拆分
+- 提取 `provider/models-dev-convert.ts`（84 行）— ModelsDev 到 Provider 類型轉換
+- 提取 `provider/helpers.ts`（120 行）— bundled providers 映射、SSE 包裝、E2E URL 等工具函數
+- `provider/provider.ts` 從 1709 行縮減至 1523 行
+
+#### 🔄 共用工具統一
+- 合併 `@opencode-ai/util/fn.ts` 和 `packages/opencode/src/util/fn.ts` 為單一實作
+- 統一版本含 schema validation 失敗時的 debug trace
+- Core 的 3 個檔案改用共享版本，移除重複的 `fn.ts`
+
+### Changed — UltraPlan 功能增強
+
+#### 🧭 深度規劃升級
+- Prompt 模板移至 `agent/prompt/ultraplan.txt`，與其他 agent 慣例一致
+- 三種深度模式加入結構化探索指令：
+  - `standard`: 直接分析
+  - `deep`: 要求先用 glob/grep 探索相關檔案
+  - `comprehensive`: 系統性目錄結構、依賴圖、測試覆蓋分析
+- 模型選擇改為 context window 最大的 active model（不再硬編碼 opus/sonnet）
+- 結果擷取改為合併所有 text parts（不再只取最後一段）
+- 新增 `webfetch`、`websearch`、`codesearch` 權限
+- 移除 deprecated `tools` 參數，改用 session-level `permission`
+- 新增「Current State Analysis」輸出段落，要求引用具體檔案路徑和行號
+
 ## [1.4.001] - 2026-04-11
 
 ### Added

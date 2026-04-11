@@ -8,6 +8,12 @@
       "dependsOn": [],
       "outputs": ["dist/**"]
     },
+    "lint": {},
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": [],
+      "passThroughEnv": ["*"]
+    },
     "opencode#test": {
       "dependsOn": ["^build"],
       "outputs": [],

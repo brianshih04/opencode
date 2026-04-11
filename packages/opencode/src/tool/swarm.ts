@@ -4,8 +4,8 @@ import DESCRIPTION from "./swarm.txt"
 import { Session } from "../session"
 import { Agent } from "../agent/agent"
 import { SessionPrompt } from "../session/prompt"
-import { SessionID } from "../session/schema"
-import { ProviderID, ModelID } from "../provider/schema"
+import { type SessionID } from "../session/schema"
+import { type ProviderID, type ModelID } from "../provider/schema"
 import { Log } from "../util/log"
 
 const log = Log.create({ service: "tool.swarm" })

@@ -17,7 +17,7 @@
 
 This is an enhanced fork of [OpenCode](https://github.com/anomalyco/opencode) with memory, multi-agent coordination, browser automation, and per-agent model configuration.
 
-**Latest (v0.5.0):** Swarm scheduling upgrade (auto complexity assessment, chain mode, result synthesis), Memory CRUD tool + Auto-Memory, 21 architecture fixes, ESLint strict rules, 47 tests passing.
+**Latest (v1.4.004):** Monorepo quality overhaul — dependency unification (catalog: protocol), ESLint expansion (4 new rules), turbo pipeline completion, Provider module decomposition (1709→1523 lines), shared utility consolidation, UltraPlan enhancement (codebase-aware depth planning, auto model selection, web search integration).
 
 ### Prerequisites
 
@@ -87,7 +87,7 @@ Six agents, each mapped to the optimal model:
 | **build** | zai/glm-5-turbo | ⚡ Efficiency engine — fast code gen & tool calls | Primary, full access |
 | **review** | zai/glm-5 | 🛡️ Strict gatekeeper — bug detection & logic review | Subagent, read-only |
 | **explore** | zai/glm-5v-turbo | 👁️ Visual explorer — codebase search with image support | Subagent |
-| **ultraplan** | zai/glm-5.1 | 📋 Deep planner — structured plans with risk assessment | Subagent, read-only |
+| **ultraplan** | zai/glm-5.1 | 📋 Deep planner — codebase-aware analysis with 3 depth levels, auto model selection | Subagent, read-only |
 | **general** | zai/glm-4.7 | 💡 Lightweight assistant — daily tasks, git ops | Subagent |
 
 Switch in TUI with `Tab` (build ↔ plan), or specify via CLI: `--agent build`

@@ -1,6 +1,6 @@
 import z from "zod"
 import { setTimeout as sleep } from "node:timers/promises"
-import { fn } from "@/util/fn"
+import { fn } from "@opencode-ai/util/fn"
 import { Database, eq } from "@/storage/db"
 import type { Project } from "@/project/project"
 import { BusEvent } from "@/bus/bus-event"
