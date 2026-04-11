@@ -17,6 +17,8 @@
 
 This is an enhanced fork of [OpenCode](https://github.com/anomalyco/opencode) with memory, multi-agent coordination, browser automation, and per-agent model configuration.
 
+**Latest (v0.5.0):** Swarm scheduling upgrade (auto complexity assessment, chain mode, result synthesis), Memory CRUD tool + Auto-Memory, 21 architecture fixes, ESLint strict rules, 47 tests passing.
+
 ### Prerequisites
 
 - [Bun](https://bun.sh) runtime
@@ -128,6 +130,15 @@ Each agent has its own persistent memory file:
 - Agents can read/write their memory using the standard `write` tool
 - Survives across sessions — agents learn and remember over time
 
+#### 🧠 Memory CRUD Tool + Auto-Memory
+
+Three-layer memory architecture:
+- **Memory CRUD tool** — `memory view/write/append/delete/list` for agent-proactive persistent storage
+- **Auto-Memory** — Automatic session summaries injected into system prompt (last 3 sessions)
+- **MemPalace** — Long-term semantic search across conversations, code, and documents
+
+Storage: `~/.opencode/memory/` (categories: decisions/, lessons/, context/, auto/)
+
 #### 🔍 Tool Search
 
 Discover available tools at runtime:
@@ -147,10 +158,22 @@ Schedule recurring or one-shot tasks:
 
 #### 🐝 Swarm Parallel Agents
 
-Two modes for multi-agent coordination:
-- **Leader mode** — Describe a high-level goal, a Team Lead agent automatically breaks it into 2-5 parallel subtasks and executes them
-- **Parallel mode** — Manually specify exact tasks to run concurrently
+Three modes for multi-agent coordination:
+- **Leader mode** — Describe a high-level goal. The system automatically assesses query complexity, picks the best strategy (depth-first / breadth-first / straightforward), and determines the optimal number of subagents (1-20). A Team Lead agent breaks down the goal and a Synthesis agent combines results.
+- **Chain mode** — Run tasks sequentially, each receiving previous output via `$PREV` placeholder.
+- **Parallel mode** — Manually specify exact tasks to run concurrently (2-20).
 - TaskTracker with status indicators (✓ ⟳ ✗)
+
+```jsonc
+// Leader mode (auto strategy)
+{ "mode": "leader", "goal": "Analyze the entire auth module for security and performance" }
+
+// Chain mode (sequential pipeline)
+{ "mode": "chain", "tasks": [
+  { "description": "Find all API endpoints", "prompt": "List all routes", "agent": "general" },
+  { "description": "Analyze endpoints", "prompt": "Based on: $PREV — which need auth?", "agent": "general" }
+]}
+```
 
 #### 📋 Task Management
 

@@ -2,6 +2,70 @@
 
 All notable changes to this fork of OpenCode will be documented in this file.
 
+## [0.5.0] - 2026-04-11
+
+### Added
+
+#### 🐝 Swarm 调度升級
+- **自動複雜度評估**: 分析 goal 自動判斷 straightforward / standard / medium / high
+- **策略選擇**: depth-first（同題多角度）、breadth-first（多子題）、straightforward（簡單任務）
+- **Chain mode**: 新增串行模式，任務依序執行，用 `$PREV` 引用前一個輸出
+- **結果合成**: 多個 subagent 結果交給 Leader 綜合分析
+- **Auto agent count**: 1~20 個 subagent，按複雜度自動計算
+- **Strategy override**: 可手動指定 `depth-first` / `breadth-first` / `auto`
+
+#### 🧠 Memory CRUD Tool + Auto-Memory
+- `memory` tool — commands: view / write / append / delete / list
+- `AutoMemory.recordSessionSummary()` — 自動記錄 session 摘要
+- **三層記憶架構**: Auto-Memory (auto, per-session) + Memory CRUD (agent proactive) + MemPalace (long-term semantic search)
+- Auto-memory trigger on: processor end, TUI exit, agent manual write
+- System prompt 注入最近 3 次 session summaries
+
+#### 🔧 ESLint + 嚴格規則
+- `@typescript-eslint/no-explicit-any` (warn)
+- `@typescript-eslint/no-unused-vars` (warn)
+- `@typescript-eslint/consistent-type-imports` (error)
+- `no-console` (warn)
+- Replaced fake `lint`/`format`/`docs`/`deploy` scripts with real ones
+
+#### 🧪 Tests (47 total)
+- `swarm.test.ts` — parameter validation (8 tests)
+- `send_message.test.ts` — parameters + security (7 tests)
+- `task-mgmt.test.ts` — parameter validation (6 tests)
+- `cron.test.ts` — cron parser (14 tests)
+- `registry.test.ts` — tool loading (3 tests)
+- `agent-memory.test.ts` — memory CRUD (9 tests)
+
+### Fixed — Architecture Fixes (21 issues, 4 phases)
+
+#### Phase 1: Critical
+- `task-mgmt.ts` import 錯誤 (task.txt → task-mgmt.txt)
+- `cron.ts` 排程器未啟動 → 加入 `startScheduler()` 在 registry init 時啟動
+
+#### Phase 2: Security
+- `send_message` agent name sanitize（防 `../` 路徑穿越）
+- `send_message` per-mailbox lock（防 TOCTOU 競態）
+- `ultraplan` bash 權限限縮為 read-only 命令（防 `echo > file` 繞過）
+- `task-mgmt` nextId 改為 await init（防 ID 競態衝突）
+- `send_message` 廣播每個收件人獨立 msg ID
+
+#### Phase 3: Medium
+- `swarm` ctx 型別從 `any` 改為 `Tool.Context`
+- `memory` Bus.subscribe 儲存 unsubscribe ref（防訂閱洩漏）
+- `memory_search` 改用 `python3` + 傳 `MEMPALACE_PATH` 環境變數
+- `skill.ts` 移除重複的動態描述
+
+#### Phase 4: Low
+- `package.json` 移除 random script / randomField
+- `cron.ts` 描述檔從 `readFileSync` 改為 `import`
+- Root test script 改為 `bun turbo test`
+- `index.ts` ResolveMessage Bun global 宣告
+
+### Changed
+- ESLint: fork 模組消除 `any` 型別 (swarm, memory, tool_search)
+- `.gitignore` 加入 dev scratch files, `docs/plans/` 加入版控
+- `brian_main` → `dev` branch push workflow
+
 ## [0.4.0] - 2026-04-10
 
 ### Added
