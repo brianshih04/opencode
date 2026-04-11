@@ -2,7 +2,7 @@
 
 All notable changes to this fork of OpenCode will be documented in this file.
 
-## [0.5.0] - 2026-04-11
+## [1.4.001] - 2026-04-11
 
 ### Added
 
