@@ -8,6 +8,11 @@ import { useRouteData } from "@tui/context/route"
 import { usePromptRef } from "../context/prompt"
 import { useLocal } from "../context/local"
 import { TuiPluginRuntime } from "../plugin"
+import { Installation } from "@/installation"
+import { useTheme } from "@tui/context/theme"
+import pkg from "../../../../package.json" with { type: "json" }
+
+const VERSION = pkg.version
 
 // TODO: what is the best way to do this?
 let once = false
@@ -23,6 +28,8 @@ export function Home() {
   const [ref, setRef] = createSignal<PromptRef | undefined>()
   const args = useArgs()
   const local = useLocal()
+  const { theme } = useTheme()
+  const version = VERSION
   let sent = false
 
   const bind = (r: PromptRef | undefined) => {
@@ -60,6 +67,9 @@ export function Home() {
           <TuiPluginRuntime.Slot name="home_logo" mode="replace">
             <Logo />
           </TuiPluginRuntime.Slot>
+        </box>
+        <box flexDirection="row" justifyContent="center" width="100%" paddingTop={0}>
+          <text fg={theme.textMuted} selectable={false}>v{version}</text>
         </box>
         <box height={1} minHeight={0} flexShrink={1} />
         <box width="100%" maxWidth={75} zIndex={1000} paddingTop={1} flexShrink={0}>
