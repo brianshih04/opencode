@@ -1,4 +1,5 @@
-import { Effect, Fiber, ScopedCache, Scope, ServiceMap } from "effect"
+import type { Scope} from "effect";
+import { Effect, Fiber, ScopedCache, ServiceMap } from "effect"
 import { Instance, type InstanceContext } from "@/project/instance"
 import { Context } from "@/util/context"
 import { InstanceRef } from "./instance-ref"

@@ -14,7 +14,8 @@
     "typecheck": "bun turbo typecheck",
     "postinstall": "bun run --cwd packages/opencode fix-node-pty",
     "prepare": "husky",
-    "test": "bun turbo test"
+    "test": "bun turbo test",
+    "lint": "bunx eslint packages/opencode/src"
   },
   "workspaces": {
     "packages": [

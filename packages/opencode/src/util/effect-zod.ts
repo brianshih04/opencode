@@ -1,4 +1,5 @@
-import { Schema, SchemaAST } from "effect"
+import type { Schema} from "effect";
+import { SchemaAST } from "effect"
 import z from "zod"
 
 export function zod<S extends Schema.Top>(schema: S): z.ZodType<Schema.Schema.Type<S>> {

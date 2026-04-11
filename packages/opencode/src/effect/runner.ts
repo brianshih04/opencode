@@ -1,4 +1,5 @@
-import { Cause, Deferred, Effect, Exit, Fiber, Option, Schema, Scope, SynchronizedRef } from "effect"
+import type { Scope} from "effect";
+import { Cause, Deferred, Effect, Exit, Fiber, Option, Schema, SynchronizedRef } from "effect"
 
 export interface Runner<A, E = never> {
   readonly state: Runner.State<A, E>

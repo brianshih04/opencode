@@ -85,8 +85,8 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
                   const last = body.messages[body.messages.length - 1]
                   return {
                     isVision: body.messages.some(
-                      (msg: any) =>
-                        Array.isArray(msg.content) && msg.content.some((part: any) => part.type === "image_url"),
+                      (msg: { content?: Array<{ type: string }> }) =>
+                        Array.isArray(msg.content) && msg.content.some((part: { type: string; content?: Array<{ type: string }> }) => part.type === "image_url"),
                     ),
                     isAgent: last?.role !== "user",
                   }
@@ -97,8 +97,8 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
                   const last = body.input[body.input.length - 1]
                   return {
                     isVision: body.input.some(
-                      (item: any) =>
-                        Array.isArray(item?.content) && item.content.some((part: any) => part.type === "input_image"),
+                      (item: { content?: Array<{ type: string }> }) =>
+                        Array.isArray(item?.content) && item.content.some((part: { type: string; content?: Array<{ type: string }> }) => part.type === "input_image"),
                     ),
                     isAgent: last?.role !== "user",
                   }
@@ -108,18 +108,18 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
                 if (body?.messages) {
                   const last = body.messages[body.messages.length - 1]
                   const hasNonToolCalls =
-                    Array.isArray(last?.content) && last.content.some((part: any) => part?.type !== "tool_result")
+                    Array.isArray(last?.content) && last.content.some((part: { type: string; content?: Array<{ type: string }> }) => part?.type !== "tool_result")
                   return {
                     isVision: body.messages.some(
-                      (item: any) =>
+                      (item: { content?: Array<{ type: string }> }) =>
                         Array.isArray(item?.content) &&
                         item.content.some(
-                          (part: any) =>
+                          (part: { type: string; content?: Array<{ type: string }> }) =>
                             part?.type === "image" ||
                             // images can be nested inside tool_result content
                             (part?.type === "tool_result" &&
                               Array.isArray(part?.content) &&
-                              part.content.some((nested: any) => nested?.type === "image")),
+                              part.content.some((nested: { type: string }) => nested?.type === "image")),
                         ),
                     ),
                     isAgent: !(last?.role === "user" && hasNonToolCalls),

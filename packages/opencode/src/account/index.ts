@@ -11,18 +11,19 @@ import { makeRuntime } from "@/effect/run-service"
 import { withTransientReadRetry } from "@/util/effect-http-client"
 import { AccountRepo, type AccountRow } from "./repo"
 import { normalizeServerUrl } from "./url"
+import type {
+  Info,
+  OrgID} from "./schema";
 import {
   type AccountError,
   AccessToken,
   AccountID,
   DeviceCode,
-  Info,
   RefreshToken,
   AccountServiceError,
   AccountTransportError,
   Login,
   Org,
-  OrgID,
   PollDenied,
   PollError,
   PollExpired,

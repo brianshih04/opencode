@@ -1,6 +1,6 @@
 import { Bus } from "@/bus"
 import { BusEvent } from "@/bus/bus-event"
-import { Config } from "@/config/config"
+import type { Config } from "@/config/config"
 import { InstanceState } from "@/effect/instance-state"
 import { makeRuntime } from "@/effect/run-service"
 import { ProjectID } from "@/project/schema"

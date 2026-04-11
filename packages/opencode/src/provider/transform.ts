@@ -155,11 +155,11 @@ export namespace ProviderTransform {
       const field = model.capabilities.interleaved.field
       return msgs.map((msg) => {
         if (msg.role === "assistant" && Array.isArray(msg.content)) {
-          const reasoningParts = msg.content.filter((part: any) => part.type === "reasoning")
-          const reasoningText = reasoningParts.map((part: any) => part.text).join("")
+          const reasoningParts = msg.content.filter((part: { type: string }) => part.type === "reasoning")
+          const reasoningText = reasoningParts.map((part: { text: string }) => part.text).join("")
 
           // Filter out reasoning parts from content
-          const filteredContent = msg.content.filter((part: any) => part.type !== "reasoning")
+          const filteredContent = msg.content.filter((part: { type: string }) => part.type !== "reasoning")
 
           // Include reasoning_content | reasoning_details directly on the message for all assistant messages
           if (reasoningText) {
@@ -902,7 +902,7 @@ export namespace ProviderTransform {
     amazon: "bedrock",
   }
 
-  export function providerOptions(model: Provider.Model, options: { [x: string]: any }) {
+  export function providerOptions(model: Provider.Model, options: Record<string, unknown>) {
     if (model.api.npm === "@ai-sdk/gateway") {
       // Gateway providerOptions are split across two namespaces:
       // - `gateway`: gateway-native routing/caching controls (order, only, byok, etc.)
@@ -993,7 +993,7 @@ export namespace ProviderTransform {
         ].some((key) => key in node)
       }
 
-      const sanitizeGemini = (obj: any): any => {
+      const sanitizeGemini = (obj: Record<string, unknown>): Record<string, unknown> => {
         if (obj === null || typeof obj !== "object") {
           return obj
         }
@@ -1002,7 +1002,7 @@ export namespace ProviderTransform {
           return obj.map(sanitizeGemini)
         }
 
-        const result: any = {}
+        const result: Record<string, unknown> = {}
         for (const [key, value] of Object.entries(obj)) {
           if (key === "enum" && Array.isArray(value)) {
             // Convert all enum values to strings
@@ -1020,7 +1020,7 @@ export namespace ProviderTransform {
 
         // Filter required array to only include fields that exist in properties
         if (result.type === "object" && result.properties && Array.isArray(result.required)) {
-          result.required = result.required.filter((field: any) => field in result.properties)
+          result.required = result.required.filter((field: string) => field in result.properties)
         }
 
         if (result.type === "array" && !hasCombiner(result)) {

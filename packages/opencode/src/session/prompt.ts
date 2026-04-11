@@ -35,7 +35,7 @@ import { ConfigMarkdown } from "../config/markdown"
 import { SessionSummary } from "./summary"
 import { NamedError } from "@opencode-ai/util/error"
 import { SessionProcessor } from "./processor"
-import { Tool } from "@/tool/tool"
+import type { Tool } from "@/tool/tool"
 import { Permission } from "@/permission"
 import { SessionStatus } from "./status"
 import { LLM } from "./llm"
@@ -395,7 +395,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
         using _ = log.time("resolveTools")
         const tools: Record<string, AITool> = {}
 
-        const context = (args: any, options: ToolExecutionOptions): Tool.Context => ({
+        const context = (args: Record<string, unknown>, options: ToolExecutionOptions): Tool.Context => ({
           sessionID: input.session.id,
           abort: options.abortSignal!,
           messageID: input.processor.message.id,
@@ -633,7 +633,7 @@ NOTE: At any point in time through this workflow you should feel free to ask the
                   }),
                 )
               },
-              ask(req: any) {
+              ask(req: Parameters<typeof App.ask>[0]) {
                 return Effect.runPromise(
                   permission.ask({
                     ...req,

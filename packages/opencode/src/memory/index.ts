@@ -1,9 +1,9 @@
 import { Log } from "@/util/log"
 import { Session } from "@/session"
-import { SessionID } from "@/session/schema"
+import type { SessionID } from "@/session/schema"
 import { Bus } from "@/bus"
 import { SessionCompaction } from "@/session/compaction"
-import { MessageV2 } from "@/session/message-v2"
+import type { MessageV2 } from "@/session/message-v2"
 import path from "path"
 import os from "os"
 

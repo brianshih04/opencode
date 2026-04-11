@@ -1,5 +1,5 @@
 import { Schema } from "effect"
-import z from "zod"
+import type z from "zod"
 
 import { Identifier } from "@/id/id"
 import { Newtype } from "@/util/schema"

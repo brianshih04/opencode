@@ -17,7 +17,14 @@ export default [
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
       "@typescript-eslint/consistent-type-imports": "error",
-      "no-console": "warn",
+      "no-console": "off",
+    },
+  },
+  // CLI commands use console.log for output — that's correct
+  {
+    files: ["src/cli/cmd/**/*.ts", "src/cli/cmd/**/*.tsx"],
+    rules: {
+      "no-console": "off",
     },
   },
   {

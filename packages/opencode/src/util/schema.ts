@@ -1,4 +1,4 @@
-import { Schema } from "effect"
+import type { Schema } from "effect"
 
 /**
  * Attach static methods to a schema object. Designed to be used with `.pipe()`:

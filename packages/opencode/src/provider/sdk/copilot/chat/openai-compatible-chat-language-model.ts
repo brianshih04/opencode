@@ -1,5 +1,6 @@
+import type {
+  APICallError} from "@ai-sdk/provider";
 import {
-  APICallError,
   InvalidResponseDataError,
   type LanguageModelV3,
   type LanguageModelV3CallOptions,

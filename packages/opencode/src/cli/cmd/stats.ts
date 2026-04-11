@@ -4,7 +4,7 @@ import { Session } from "../../session"
 import { bootstrap } from "../bootstrap"
 import { Database } from "../../storage/db"
 import { SessionTable } from "../../session/session.sql"
-import { Project } from "../../project/project"
+import type { Project } from "../../project/project"
 import { Instance } from "../../project/instance"
 
 interface SessionStats {
