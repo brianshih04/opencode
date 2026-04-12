@@ -47,30 +47,20 @@ async function readDirSafe(dirPath: string): Promise<string[]> {
   return items
 }
 
-const Parameters = z.discriminatedUnion("command", [
-  z.object({
-    command: z.literal("view").describe("View memory contents"),
-    path: z.string().optional().describe("Memory file path (e.g. decisions/2026-04-10.md). If omitted, list memory root directory."),
-    view_range: z.tuple([z.number(), z.number()]).optional().describe("Line range [start, end]. end=-1 means to end of file."),
-  }),
-  z.object({
-    command: z.literal("write").describe("Write or overwrite a memory file"),
-    path: z.string().describe("Memory file path (e.g. decisions/2026-04-10.md)"),
-    content: z.string().describe("Content to write"),
-  }),
-  z.object({
-    command: z.literal("append").describe("Append content to an existing memory file"),
-    path: z.string().describe("Memory file path"),
-    content: z.string().describe("Content to append"),
-  }),
-  z.object({
-    command: z.literal("delete").describe("Delete a memory file or directory"),
-    path: z.string().describe("Memory file or directory path to delete"),
-  }),
-  z.object({
-    command: z.literal("list").describe("List all memory categories and files"),
-  }),
-])
+const Parameters = z.object({
+  command: z.enum(["view", "write", "append", "delete", "list"]).describe(
+    "Action: 'list' to show categories, 'view' to read, 'write' to create/overwrite, 'append' to add to, 'delete' to remove.",
+  ),
+  path: z.string().optional().describe(
+    "Memory file path (e.g. decisions/2026-04-10.md). Required for write/append/delete. For view: omit to list root, or provide path.",
+  ),
+  content: z.string().optional().describe(
+    "Content to write or append. Required for 'write' and 'append' commands.",
+  ),
+  view_range: z.tuple([z.number(), z.number()]).optional().describe(
+    "Line range [start, end] for viewing. end=-1 means to end of file. Only for 'view' command.",
+  ),
+})
 
 export const MemoryTool = Tool.define("memory", async () => {
   return {
@@ -149,6 +139,12 @@ export const MemoryTool = Tool.define("memory", async () => {
           }
 
           case "write": {
+            if (!params.path) {
+              return { output: "Error: 'path' is required for write command.", title: "Memory: error", metadata: {} }
+            }
+            if (!params.content) {
+              return { output: "Error: 'content' is required for write command.", title: "Memory: error", metadata: {} }
+            }
             const relPath = validateRelativePath(params.path)
             const fp = fullPath(relPath)
             if (!path.extname(relPath)) {
@@ -161,6 +157,12 @@ export const MemoryTool = Tool.define("memory", async () => {
           }
 
           case "append": {
+            if (!params.path) {
+              return { output: "Error: 'path' is required for append command.", title: "Memory: error", metadata: {} }
+            }
+            if (!params.content) {
+              return { output: "Error: 'content' is required for append command.", title: "Memory: error", metadata: {} }
+            }
             const relPath = validateRelativePath(params.path)
             const fp = fullPath(relPath)
             const exists = await fs.stat(fp).catch(() => null)

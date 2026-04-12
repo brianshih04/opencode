@@ -176,7 +176,6 @@ export namespace ToolRegistry {
                 ...(Flag.OPENCODE_EXPERIMENTAL_ULTRAPLAN ? [UltraPlanTool] : []),
                 ToolSearchTool,
                 CronTool,
-                MemoryTool,
               ],
               build,
               { concurrency: "unbounded" },
