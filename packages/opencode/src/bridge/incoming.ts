@@ -1,35 +1,27 @@
-import { Deferred, Effect, Exit, Layer, Schedule, ServiceMap } from "effect"
+import { Deferred, Duration, Effect, Exit, Layer, ServiceMap } from "effect"
 import { Log } from "@/util/log"
 import fsNode from "fs"
 import path from "path"
-import os from "os"
 import type { Bridge } from "./index"
+
+interface IncomingState {
+  pending: Map<string, Deferred.Deferred<number[]>>
+  watcher: fsNode.FSWatcher | null
+}
 
 export namespace Incoming {
   const log = Log.create({ service: "bridge.incoming" })
 
-  function bridgeBasePath(): string {
-    return process.env.OC_BRIDGE_PATH || path.join(os.homedir(), ".opencode", "bridge")
-  }
-
-  function answerDir(): string {
-    return path.join(bridgeBasePath(), "incoming", "answer")
-  }
-
-  // Pending question trackers
-  const pending = new Map<string, Deferred.Deferred<number[]>>()
-  let watcher: fsNode.FSWatcher | null = null
-
-  function processAnswerFile(filepath: string): Effect.Effect<void> {
+  function processAnswerFile(state: IncomingState, filepath: string): Effect.Effect<void> {
     return Effect.sync(() => {
       try {
         const raw = fsNode.readFileSync(filepath, "utf-8")
         const msg: Bridge.AnswerMessage = JSON.parse(raw)
-        const deferred = pending.get(msg.question_id)
+        const deferred = state.pending.get(msg.question_id)
         if (deferred) {
           log.info("answer received", { question_id: msg.question_id, selected: msg.selected })
           Deferred.doneUnsafe(deferred, Exit.succeed(msg.selected))
-          pending.delete(msg.question_id)
+          state.pending.delete(msg.question_id)
         } else {
           log.warn("answer for unknown question", { question_id: msg.question_id })
         }
@@ -41,13 +33,12 @@ export namespace Incoming {
     })
   }
 
-  function processExistingAnswers(): Effect.Effect<void> {
+  function processExistingAnswers(state: IncomingState, dir: string): Effect.Effect<void> {
     return Effect.sync(() => {
-      const dir = answerDir()
       if (!fsNode.existsSync(dir)) return
       const files = fsNode.readdirSync(dir).filter((f) => f.endsWith(".json"))
       for (const file of files) {
-        Effect.runSync(processAnswerFile(path.join(dir, file)))
+        Effect.runSync(processAnswerFile(state, path.join(dir, file)))
       }
     })
   }
@@ -60,64 +51,89 @@ export namespace Incoming {
 
   export class Service extends ServiceMap.Service<Service, Interface>()("@opencode/BridgeIncoming") {}
 
-  export const layer = Layer.succeed(
-    Service,
-    Service.of({
+  export function make(answerDir: string): Interface {
+    const state: IncomingState = {
+      pending: new Map(),
+      watcher: null,
+    }
+
+    return {
       waitForAnswer: (questionId, timeoutMinutes) =>
         Effect.gen(function* () {
           const deferred = yield* Deferred.make<number[]>()
-          pending.set(questionId, deferred)
+          state.pending.set(questionId, deferred)
 
           // Check for existing answers first
-          yield* processExistingAnswers()
+          yield* processExistingAnswers(state, answerDir)
 
           // Race between answer and timeout
           const timeout = Effect.delay(
             Effect.sync(() => {
-              pending.delete(questionId)
               log.info("question timed out", { question_id: questionId })
             }),
-            `${timeoutMinutes} minutes` as any,
+            Duration.minutes(timeoutMinutes),
           )
 
-          // Return deferred result (timeout returns empty array)
           const result = yield* Effect.race(
             Deferred.await(deferred),
             Effect.andThen(timeout, Effect.succeed<number[]>([])),
           )
+
           return result
-        }),
+        }).pipe(
+          Effect.ensuring(
+            Effect.sync(() => {
+              state.pending.delete(questionId)
+            }),
+          ),
+        ),
 
       startWatching: () =>
         Effect.sync(() => {
-          const dir = answerDir()
-          fsNode.mkdirSync(dir, { recursive: true })
+          fsNode.mkdirSync(answerDir, { recursive: true })
 
-          watcher = fsNode.watch(dir, (eventType, filename) => {
-            if (filename && filename.endsWith(".json")) {
-              const filepath = path.join(dir, filename)
+          state.watcher = fsNode.watch(answerDir, (eventType, filename) => {
+            if (!filename || !filename.endsWith(".json")) return
+            const filepath = path.join(answerDir, filename)
+            // Small delay to ensure file is fully written
+            setTimeout(() => {
               if (fsNode.existsSync(filepath)) {
-                Effect.runSync(processAnswerFile(filepath))
+                Effect.runSync(processAnswerFile(state, filepath))
               }
-            }
+            }, 100)
           })
 
-          log.info("watching answer directory", { dir })
+          state.watcher.on("error", (err) => {
+            log.error("watcher error", { error: String(err) })
+          })
+
+          log.info("watching answer directory", { dir: answerDir })
         }),
 
       stopWatching: () =>
         Effect.sync(() => {
-          if (watcher) {
-            watcher.close()
-            watcher = null
+          if (state.watcher) {
+            state.watcher.close()
+            state.watcher = null
           }
-          // Fail all pending
-          for (const [id, deferred] of pending) {
+          // Resolve all pending with empty array (no answer)
+          for (const [, deferred] of state.pending) {
             Deferred.doneUnsafe(deferred, Exit.succeed([]))
           }
-          pending.clear()
+          state.pending.clear()
           log.info("stopped watching")
         }),
-    }),
+    }
+  }
+
+  export const layer = Layer.succeed(
+    Service,
+    Service.of(make(
+      path.join(
+        process.env.OC_BRIDGE_PATH || path.join(require("os").homedir(), ".opencode", "bridge"),
+        "incoming",
+        "answer",
+      ),
+    )),
   )
 }
