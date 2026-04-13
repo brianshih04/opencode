@@ -2,7 +2,16 @@
   "permissions": {
     "allow": [
       "Bash(sort -k2)",
-      "Bash(find packages:*)"
+      "Bash(find packages:*)",
+      "Bash(bun run:*)",
+      "Bash(kill %1)",
+      "Bash(wait %1)",
+      "Bash(python3 -c \"import mempalace; print\\('MemPalace found'\\)\")",
+      "Bash(find .:*)",
+      "Bash(npx tsc:*)",
+      "Bash(bunx tsc:*)",
+      "Bash(bunx eslint:*)",
+      "Bash(find packages/opencode/src/ -name \"*.ts\" -exec wc -l {} +)"
     ]
   }
 }

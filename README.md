@@ -17,7 +17,7 @@
 
 This is an enhanced fork of [OpenCode](https://github.com/anomalyco/opencode) with memory, multi-agent coordination, browser automation, and per-agent model configuration.
 
-**Latest (v1.4.004):** Monorepo quality overhaul — dependency unification (catalog: protocol), ESLint expansion (4 new rules), turbo pipeline completion, Provider module decomposition (1709→1523 lines), shared utility consolidation, UltraPlan enhancement (codebase-aware depth planning, auto model selection, web search integration).
+**Latest (v0.6.001):** Home page version display, simplified version scheme (`v0.x.xxx`), preview build uses package.json version.
 
 ### Prerequisites
 

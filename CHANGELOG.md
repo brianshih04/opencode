@@ -2,6 +2,13 @@
 
 All notable changes to this fork of OpenCode will be documented in this file.
 
+## [0.6.001] - 2026-04-13
+
+### Added
+- **首頁版本號顯示** — Logo 下方顯示目前版本（透過 health API 自動取得）
+- **版本編碼制度** — 改用 `v0.x.xxx` 格式，每次修改 +0.0.001
+- **Preview build 版本簡化** — branch build 不再使用帶時間戳的長版本號，改為讀取 `package.json` version
+
 ## [1.4.004] - 2026-04-11
 
 ### Changed — Phase 1: 基礎品質強化

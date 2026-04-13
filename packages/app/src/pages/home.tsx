@@ -1,4 +1,4 @@
-import { createMemo, For, Match, Switch } from "solid-js"
+import { createMemo, createResource, createSignal, For, Match, Show, Switch } from "solid-js"
 import { Button } from "@opencode-ai/ui/button"
 import { Logo } from "@opencode-ai/ui/logo"
 import { useLayout } from "@/context/layout"
@@ -13,6 +13,7 @@ import { DialogSelectServer } from "@/components/dialog-select-server"
 import { useServer } from "@/context/server"
 import { useGlobalSync } from "@/context/global-sync"
 import { useLanguage } from "@/context/language"
+import { useGlobalSDK } from "@/context/global-sdk"
 
 export default function Home() {
   const sync = useGlobalSync()
@@ -22,6 +23,9 @@ export default function Home() {
   const navigate = useNavigate()
   const server = useServer()
   const language = useLanguage()
+  const sdk = useGlobalSDK()
+  const [version, setVersion] = createSignal("")
+  createResource(() => sdk.client.global.health().then((r) => r.data?.version ?? "").then(setVersion))
   const homedir = createMemo(() => sync.data.path.home)
   const recent = createMemo(() => {
     return sync.data.project
@@ -71,6 +75,9 @@ export default function Home() {
   return (
     <div class="mx-auto mt-55 w-full md:w-auto px-4">
       <Logo class="md:w-xl opacity-12" />
+      <Show when={version()}>
+        <div class="mt-2 text-12-regular text-text-weak">v{version()}</div>
+      </Show>
       <Button
         size="large"
         variant="ghost"

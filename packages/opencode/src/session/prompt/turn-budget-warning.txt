@@ -1,0 +1,7 @@
+WARNING: You are approaching the maximum number of steps. You have {remaining} step(s) remaining.
+
+IMPORTANT:
+1. Wrap up your current task as soon as possible
+2. Do NOT start any new complex tasks
+3. If you are in the middle of a multi-step operation, finish the current step and summarize the remaining work
+4. Prioritize completing what you have started over starting new work
