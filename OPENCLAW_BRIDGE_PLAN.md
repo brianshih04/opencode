@@ -42,6 +42,7 @@ OpenCode 啟動時在 bridge 目錄寫入 `run.json`：
 指令：
 - `/bridge watch` — 掃描並選擇要監看的 OpenCode
 - `/bridge status` — 目前監看狀態
+- `/bridge switch` — 中途切換監看其他實例（重新列出選單）
 - `/bridge stop` — 停止監看
 
 ## 架構
