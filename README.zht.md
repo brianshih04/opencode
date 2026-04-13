@@ -79,14 +79,14 @@ opencode run --model zai/glm-5-turbo "修 bug"  # 一次性
 
 六個 Agent，各自搭配最佳模型：
 
-| Agent | 模型 | 角色 | 模式 |
-|-------|------|------|------|
-| **plan** | zai/glm-5.1 | 🧠 最強大腦 — 架構規劃、長程任務 | Primary, 唯讀 |
-| **build** | zai/glm-5-turbo | ⚡ 效率兵工廠 — 快速代碼生成與工具調用 | Primary, 完整權限 |
-| **review** | zai/glm-5 | 🛡️ 嚴謹守門員 — 抓 Bug、檢查邏輯 | Subagent, 唯讀 |
-| **explore** | zai/glm-5v-turbo | 👁️ 視覺探索者 — 支援圖片的 Codebase 搜尋 | Subagent |
-| **ultraplan** | zai/glm-5.1 | 📋 深度規劃師 — 結構化計畫含風險評估 | Subagent, 唯讀 |
-| **general** | zai/glm-4.7 | 💡 輕量助手 — 日常任務、Git 指令 | Subagent |
+| Agent         | 模型             | 角色                                     | 模式              |
+| ------------- | ---------------- | ---------------------------------------- | ----------------- |
+| **plan**      | zai/glm-5.1      | 🧠 最強大腦 — 架構規劃、長程任務         | Primary, 唯讀     |
+| **build**     | zai/glm-5-turbo  | ⚡ 效率兵工廠 — 快速代碼生成與工具調用   | Primary, 完整權限 |
+| **review**    | zai/glm-5        | 🛡️ 嚴謹守門員 — 抓 Bug、檢查邏輯         | Subagent, 唯讀    |
+| **explore**   | zai/glm-5v-turbo | 👁️ 視覺探索者 — 支援圖片的 Codebase 搜尋 | Subagent          |
+| **ultraplan** | zai/glm-5.1      | 📋 深度規劃師 — 結構化計畫含風險評估     | Subagent, 唯讀    |
+| **general**   | zai/glm-4.7      | 💡 輕量助手 — 日常任務、Git 指令         | Subagent          |
 
 TUI 中用 `Tab` 切換（build ↔ plan），或 CLI 指定：`--agent build`
 
@@ -114,6 +114,7 @@ opencode D:\Projects\my-project
 #### 🧠 MemPalace 記憶系統
 
 透過 [MemPalace](https://github.com/user/mempalace) 實現長期記憶。
+
 - 啟動時自動注入 L0+L1 語境到系統提示詞
 - `memory_search` 工具可查詢過往對話與專案知識
 - **autoDream 雙閘門**：時間閘門（≥24 小時）+ Session 閘門（≥5 次壓縮）— 每次 session 增量 mining，雙閘門通過才跑完整整理
@@ -123,14 +124,38 @@ opencode D:\Projects\my-project
 #### 🤖 Agent 記憶
 
 每個 Agent 擁有獨立的持久記憶檔案：
+
 - 存放在 `~/.opencode/agent-memory/<agentName>/MEMORY.md`
 - Session 啟動時自動注入系統提示詞
 - Agent 可用標準 `write` 工具讀寫自己的記憶
 - 跨 Session 持久保存 — Agent 會隨時間學習和記住
 
+#### 🌉 OpenClaw Bridge
+
+透過純檔案 IPC 讓 OpenClaw (Telegram bot) 即時監控 OpenCode 並雙向互動。
+
+在 `.opencode/opencode.jsonc` 啟用：
+
+```jsonc
+{
+  "bridge": {
+    "enabled": true,
+    "path": "~/.opencode/bridge", // optional
+  },
+}
+```
+
+- **零侵入** — Bridge 是附加層，Terminal 完全不受影響
+- **Status 推播** — busy/idle/error 狀態自動推播到 Telegram
+- **Question 互動** — HITL 問題帶 Inline Keyboard，手機可遠端回答
+- **Race 語義** — Terminal 和 Telegram 並行等待，先到先贏
+- **離線容錯** — OpenClaw 掛了不影響 OpenCode 運作
+- 詳見 [OPENCLAW_BRIDGE_PLAN.md](./OPENCLAW_BRIDGE_PLAN.md)
+
 #### 🔍 工具搜尋
 
 在執行時動態發現可用工具：
+
 - 關鍵字搜尋 27 個工具的名稱和描述
 - `select:name1,name2` 直接選取指定工具
 - 加權評分：名稱匹配 (10) > 名稱片段 (5) > 描述詞彙 (3)
@@ -139,6 +164,7 @@ opencode D:\Projects\my-project
 #### ⏰ 排程任務
 
 建立週期性或一次性排程：
+
 - 標準 5 欄 cron 表達式（`分 時 日 月 週`）
 - 建立/列表/刪除操作
 - 任務持久化到 `~/.opencode/cron-tasks.json`
@@ -148,6 +174,7 @@ opencode D:\Projects\my-project
 #### 🐝 Swarm 平行 Agent
 
 兩種多 Agent 協調模式：
+
 - **Leader 模式** — 描述高層目標，Team Lead 自動拆解成 2-5 個平行子任務並執行
 - **Parallel 模式** — 手動指定任務同時執行
 - TaskTracker 追蹤狀態（✓ ⟳ ✗）
@@ -155,6 +182,7 @@ opencode D:\Projects\my-project
 #### 📋 任務管理
 
 持久化的任務追蹤系統（`~/.opencode/tasks/`）：
+
 - 建立/更新/列表/查詢任務
 - 狀態流程：`pending` → `in_progress` → `completed` / `deleted`
 - 任務依賴（`blocks` / `blockedBy`）
@@ -163,6 +191,7 @@ opencode D:\Projects\my-project
 #### ✉️ Agent 間通訊
 
 檔案式信箱系統（`~/.opencode/mailboxes/`）：
+
 - 發送私訊給特定 Agent
 - 廣播（`*`）給所有隊友
 - 訊息跨 Session 持久保存
@@ -170,12 +199,14 @@ opencode D:\Projects\my-project
 #### 🌐 瀏覽器自動化
 
 透過 [OpenCLI](https://github.com/brianshih04/opencli) daemon + 擴充功能控制 Chrome：
+
 - 13 種操作：導航、點擊、輸入、執行 JS、截圖、取得內容、分頁管理等
 - 反偵測隱匿注入
 
 #### 🤖 Agent 模型指定
 
 在 `.opencode/opencode.jsonc` 中設定：
+
 ```jsonc
 {
   "agent": {
@@ -184,8 +215,8 @@ opencode D:\Projects\my-project
     "review": { "model": "zai/glm-5" },
     "explore": { "model": "zai/glm-5v-turbo" },
     "ultraplan": { "model": "zai/glm-5.1" },
-    "general": { "model": "zai/glm-4.7" }
-  }
+    "general": { "model": "zai/glm-4.7" },
+  },
 }
 ```
 

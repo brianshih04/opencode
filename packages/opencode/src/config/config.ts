@@ -1038,6 +1038,12 @@ export namespace Config {
             .describe("Timeout in milliseconds for model context protocol (MCP) requests"),
         })
         .optional(),
+      bridge: z
+        .object({
+          enabled: z.boolean().optional().describe("Enable OpenClaw bridge integration"),
+          path: z.string().optional().describe("Custom bridge mailbox path"),
+        })
+        .optional(),
     })
     .strict()
     .meta({
