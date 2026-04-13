@@ -5,6 +5,45 @@
 讓布萊恩能從手機（Telegram）即時掌握 OpenCode 執行狀況，並回覆 OpenCode 的問題。
 OpenCode 為主動執行者，OpenClaw 為通訊中介。
 
+## 進程發現與監看
+
+### OpenCode 端
+
+OpenCode 啟動時在 bridge 目錄寫入 `run.json`：
+
+```json
+{
+  "pid": 12345,
+  "cwd": "D:\\Projects\\opencode",
+  "branch": "dev_0411_2",
+  "started_at": "2026-04-13T08:00:00Z"
+}
+```
+
+正常關閉時刪除。殘留時 OpenClaw 可透過檢查 PID 是否存活判斷。
+
+### OpenClaw 端
+
+布萊恩說「監看 OpenCode」或 `/bridge watch` 時：
+
+1. 掃描 `~/.opencode/bridge/` 下所有 `run.json`
+2. **若有多個實例**，列出清單讓使用者選擇：
+```
+偵測到多個 OpenCode 實例：
+1. PID 12345 — D:\Projects\opencode (3 分鐘前啟動)
+2. PID 67890 — D:\Projects\my-app (剛剛啟動)
+
+要監看哪個？
+[1] [2] [全部]
+```
+3. 使用者選擇後開始監聽對應的 outgoing 目錄
+4. OpenCode 關閉 → `run.json` 消失 → 自動停止並通知
+
+指令：
+- `/bridge watch` — 掃描並選擇要監看的 OpenCode
+- `/bridge status` — 目前監看狀態
+- `/bridge stop` — 停止監看
+
 ## 架構
 
 ```
@@ -20,12 +59,12 @@ OpenCode 為主動執行者，OpenClaw 為通訊中介。
 
 ```
 bridge/
+├── run.json           ← 進程資訊（PID、cwd、啟動時間）
 ├── outgoing/          ← OpenCode 寫，OpenClaw 讀後刪
 │   ├── status/        ← 狀態推播
 │   └── question/      ← HITL 問題
-├── incoming/          ← OpenClaw 寫，OpenCode 讀後刪
-│   └── answer/        ← 使用者回覆
-└── config.json        ← 橋接設定
+└── incoming/          ← OpenClaw 寫，OpenCode 讀後刪
+    └── answer/        ← 使用者回覆
 ```
 
 ### 訊息格式
