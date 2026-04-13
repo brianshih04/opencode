@@ -2,6 +2,22 @@
 
 All notable changes to this fork of OpenCode will be documented in this file.
 
+## [0.6.002] - 2026-04-13
+
+### Added — OpenClaw Bridge Integration
+
+- **Bridge Core module** (`packages/opencode/src/bridge/`) — filesystem-based IPC with OpenClaw
+  - `outgoing.ts` — Writes status and question JSONs to `~/.opencode/bridge/outgoing/`
+  - `incoming.ts` — Watches `~/.opencode/bridge/incoming/answer/` for replies via `fs.watch`, matches `question_id` to pending deferred promises with 30-min timeout
+  - `watcher.ts` — Directory initialization, `run.json` lifecycle (PID/cwd/branch/started_at), stale message cleanup on startup
+  - `index.ts` — Unified Bridge namespace with `sendStatus()`, `sendQuestion()`, `init()`, `shutdown()`
+- **Config schema** — Added `bridge` field to config: `{ enabled: boolean, path?: string }`
+- **Bootstrap hook** — Bridge auto-initializes when `config.bridge.enabled = true`; subscribes to `Question.Asked` events to bridge questions to Telegram in parallel
+- **Zero-invasive** — Bridge is completely inert when not enabled; no changes to existing behavior
+
+### Fixed
+- **answerDir path** — Corrected incoming watcher to use `~/.opencode/bridge/incoming/answer/` (was missing `bridge` layer)
+
 ## [0.6.001] - 2026-04-13
 
 ### Added

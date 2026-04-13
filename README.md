@@ -17,7 +17,7 @@
 
 This is an enhanced fork of [OpenCode](https://github.com/anomalyco/opencode) with memory, multi-agent coordination, browser automation, and per-agent model configuration.
 
-**Latest (v0.6.001):** Home page version display, simplified version scheme (`v0.x.xxx`), preview build uses package.json version.
+**Latest (v0.6.002):** OpenClaw Bridge integration — real-time Telegram notifications for OpenCode sessions, questions, and status updates.
 
 ### Prerequisites
 
@@ -189,6 +189,15 @@ File-based mailbox system (`~/.opencode/mailboxes/`):
 - Direct messages to specific agents
 - Broadcast (`*`) to all teammates
 - Messages persist across session restarts
+
+#### 🌉 OpenClaw Bridge
+
+Real-time Telegram integration via [OpenClaw](https://docs.openclaw.ai):
+- **Status notifications** — Session start/complete/error pushed to Telegram
+- **Question bridging** — OpenCode questions (tool confirmations, choices) forwarded to Telegram, answers relayed back
+- **File-system IPC** — Zero-dependency mailbox pattern using `~/.opencode/bridge/`
+- **Configurable** — Enable in `.opencode/opencode.jsonc`: `{ "bridge": { "enabled": true } }`
+- **Bidirectional** — OpenCode writes outgoing messages, OpenClaw monitor reads and delivers; answers flow back through incoming directory
 
 #### 🌐 Browser Automation
 
