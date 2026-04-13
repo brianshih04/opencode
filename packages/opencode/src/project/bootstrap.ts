@@ -11,6 +11,8 @@ import { Command } from "../command"
 import { Instance } from "./instance"
 import { Log } from "@/util/log"
 import { ShareNext } from "@/share/share-next"
+import { Bridge } from "@/bridge"
+import * as BridgeSub from "@/bridge/subscriber"
 
 export async function InstanceBootstrap() {
   Log.Default.info("bootstrapping", { directory: Instance.directory })
@@ -28,4 +30,12 @@ export async function InstanceBootstrap() {
       Project.setInitialized(Instance.project.id)
     }
   })
+
+  const { Config } = await import("@/config/config")
+  const cfg = await Config.get()
+  if (cfg.bridge?.enabled) {
+    await Bridge.init(cfg.bridge.path)
+    BridgeSub.init()
+    Log.Default.info("bridge enabled", { path: cfg.bridge.path })
+  }
 }
