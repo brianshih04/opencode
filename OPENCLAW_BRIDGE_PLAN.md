@@ -24,7 +24,7 @@ OpenCode 啟動時在 bridge 目錄寫入 `run.json`：
 
 ### OpenClaw 端
 
-布萊恩說「監看 OpenCode」或 `/bridge watch` 時：
+布萊恩說「監看 OpenCode」或 `/ocbridge watch` 時：
 
 1. 掃描 `~/.opencode/bridge/` 下所有 `run.json`
 2. **若有多個實例**，列出清單讓使用者選擇：
@@ -281,7 +281,7 @@ Step 4: 端到端測試
 - **Race semantics**：Question 觸發時 Terminal 和 Telegram 並行等待，哪邊先回就用哪邊
 - **狀態推播單向通知**：不干擾 Terminal 輸出
 - **場景**：在電腦前用 Terminal，離開電腦用手機 Telegram
-- **零指令**：不需要 `/bridge` 或 `opencode bridge`，設定好就自動運作
+- **零指令**：不需要在 OpenCode 端下任何指令，設定好就自動運作。OpenClaw 端透過 `/ocbridge` 系列指令管理
 
 ## 風險
 
