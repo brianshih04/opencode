@@ -40,10 +40,12 @@ OpenCode 啟動時在 bridge 目錄寫入 `run.json`：
 4. OpenCode 關閉 → `run.json` 消失 → 自動停止並通知
 
 指令：
-- `/bridge watch` — 掃描並選擇要監看的 OpenCode
+- `/bridge start [path]` — 在指定目錄啟動 OpenCode 並自動監看
+- `/bridge watch` — 掃描並選擇要監看的已存在 OpenCode
 - `/bridge status` — 目前監看狀態
 - `/bridge switch` — 中途切換監看其他實例（重新列出選單）
-- `/bridge stop` — 停止監看
+- `/bridge stop` — 停止監看（不關閉 OpenCode）
+- `/bridge kill` — 停止監看並關閉 OpenCode 進程
 
 ## 架構
 
