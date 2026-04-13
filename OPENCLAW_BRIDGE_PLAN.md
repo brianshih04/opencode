@@ -120,7 +120,8 @@ bridge/
 在 `tool/question.ts` 的 `Question.ask()` 流程中，**並行**觸發 Bridge：
 - 原本 CLI 端的 terminal prompt 保持運作（桌面用）
 - 額外呼叫 `Bridge.sendQuestion()` 到 Telegram 端
-- 兩邊哪個先回就採用，另一邊忽略（race semantics）
+- 兩邊哪邊先回就採用，另一邊忽略（race semantics）
+- Terminal 操作完全不受影響，Bridge 是無侵入的附加通道
 
 #### A3. Config 擴展
 
@@ -134,6 +135,10 @@ bridge/
   }
 }
 ```
+
+**啟動方式：全自動，無需手動指令。** OpenCode 啟動時自動偵測 `bridge.enabled`，
+若為 true 則初始化 outgoing/incoming 監聽。使用者在 OpenCode 端零感知，
+Terminal 操作完全不受影響。Telegram 端只是額外的並行通知/互動通道。
 
 ### Part B：OpenClaw 端（OpenClaw Skill）
 
@@ -227,6 +232,14 @@ Step 4: 端到端測試
 | 維護成本 | OpenCode 維護 Telegram 邏輯 | 各管各的 |
 | 可擴展性 | 只能 Telegram | 換頻道只改 OpenClaw |
 | 離線可用 | Telegram 掛了就全掛 | OpenCode 不受影響，只是收不到通知 |
+
+## 使用者體驗設計
+
+- **Terminal 完全不受影響**：Bridge 是透明的附加層，不修改任何現有 UI 行為
+- **Race semantics**：Question 觸發時 Terminal 和 Telegram 並行等待，哪邊先回就用哪邊
+- **狀態推播單向通知**：不干擾 Terminal 輸出
+- **場景**：在電腦前用 Terminal，離開電腦用手機 Telegram
+- **零指令**：不需要 `/bridge` 或 `opencode bridge`，設定好就自動運作
 
 ## 風險
 
