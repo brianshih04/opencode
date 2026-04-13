@@ -11,6 +11,9 @@ import { Command } from "../command"
 import { Instance } from "./instance"
 import { Log } from "@/util/log"
 import { ShareNext } from "@/share/share-next"
+import { Bridge } from "@/bridge"
+import { Config } from "@/config/config"
+import { Question } from "@/question"
 
 export async function InstanceBootstrap() {
   Log.Default.info("bootstrapping", { directory: Instance.directory })
@@ -28,4 +31,43 @@ export async function InstanceBootstrap() {
       Project.setInitialized(Instance.project.id)
     }
   })
+
+  // Bridge: initialize if enabled in config
+  try {
+    const config = await Config.get()
+    if (config.bridge?.enabled) {
+      await Bridge.init()
+      Log.Default.info("bridge enabled and initialized")
+
+      // Subscribe to question events to bridge them to Telegram
+      Bus.subscribe(Question.Event.Asked, async (payload) => {
+        try {
+          const req = payload.properties
+          const firstQ = req.questions[0]
+          if (firstQ) {
+            const choices = firstQ.options.map((opt, i) => ({ index: i, label: opt.label }))
+            Bridge.sendQuestion({
+              questionId: String(req.id),
+              title: firstQ.header,
+              message: firstQ.question,
+              choices,
+              sessionId: req.sessionID,
+              multiple: firstQ.multiple,
+            }).catch(() => {})
+          }
+        } catch {}
+      })
+
+      // Cleanup on exit
+      const origDispose = Instance.dispose.bind(Instance)
+      const bridgeDispose = async () => {
+        await Bridge.shutdown().catch(() => {})
+      }
+      process.on("exit", bridgeDispose)
+      process.on("SIGINT", bridgeDispose)
+      process.on("SIGTERM", bridgeDispose)
+    }
+  } catch (e) {
+    Log.Default.warn("bridge init failed", { error: String(e) })
+  }
 }
