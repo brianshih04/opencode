@@ -192,12 +192,35 @@ File-based mailbox system (`~/.opencode/mailboxes/`):
 
 #### 🌉 OpenClaw Bridge
 
-Real-time Telegram integration via [OpenClaw](https://docs.openclaw.ai):
+Bidirectional Telegram integration via [OpenClaw](https://docs.openclaw.ai):
 - **Status notifications** — Session start/complete/error pushed to Telegram
 - **Question bridging** — OpenCode questions (tool confirmations, choices) forwarded to Telegram, answers relayed back
+- **External prompts** — Send messages from Telegram to OpenCode via `/ocwrite` slash command
 - **File-system IPC** — Zero-dependency mailbox pattern using `~/.opencode/bridge/`
 - **Configurable** — Enable in `.opencode/opencode.jsonc`: `{ "bridge": { "enabled": true } }`
-- **Bidirectional** — OpenCode writes outgoing messages, OpenClaw monitor reads and delivers; answers flow back through incoming directory
+
+**OpenClaw Slash Commands:**
+- `/ocread` (or `/ocr`) — Read last 100 messages from OpenCode sessions
+- `/ocwrite <msg>` (or `/ocw <msg>`) — Send a message to OpenCode's active session
+- `/ocsend <qid> <choice>` — Reply to an OpenCode question
+
+##### Installing the OpenClaw Skill
+
+The `opencode-bridge` skill is included in this repo at `openclaw_skills/opencode-bridge/`. To install it into your OpenClaw workspace:
+
+```bash
+# Copy the skill to your OpenClaw workspace
+xcopy /E /I openclaw_skills\opencode-bridge %USERPROFILE%\.openclaw\workspace\skills\opencode-bridge\
+
+# Verify
+node %USERPROFILE%\.openclaw\workspace\skills\opencode-bridge\scripts\ocread.cjs
+```
+
+Or manually create the skill directory with the scripts from `openclaw_skills/opencode-bridge/scripts/`:
+- `ocread.cjs` — Reads last 100 messages from OpenCode SQLite database
+- `ocwrite.cjs` — Writes prompt to `~/.opencode/bridge/incoming/prompt/`
+- `answer.cjs` — Writes answer to `~/.opencode/bridge/incoming/answer/`
+- `scan.cjs` — Scans bridge outgoing directory for status/question messages
 
 #### 🌐 Browser Automation
 

@@ -2,6 +2,28 @@
 
 All notable changes to this fork of OpenCode will be documented in this file.
 
+## [0.6.003] - 2026-04-14
+
+### Added — External Prompt (ocwrite)
+
+- **External prompt watcher** (`bridge/incoming.ts`) — New `startPromptWatcher()` watches `~/.opencode/bridge/incoming/prompt/` for incoming messages from Telegram
+- **ExternalPrompt BusEvent** — New event type for routing external prompts to the active session
+- **Bootstrap subscription** (`project/bootstrap.ts`) — Subscribes to `ExternalPrompt` events and calls `SessionPrompt.prompt()` to inject messages into the active session
+- **Directory structure** (`bridge/watcher.ts`) — Added `incoming/prompt/` to init directories and stale cleanup
+- **ocwrite.cjs** — OpenClaw skill script to send messages from Telegram to OpenCode via bridge IPC
+- **ocread.cjs** — Enhanced to read last 100 messages (up from 10) with 2000 char limit per message
+
+### Changed — OpenClaw Skill
+
+- **Slash commands** — Added `/ocw` (alias for `/ocwrite`) and `/ocr` (alias for `/ocread`)
+- **Auto-read** — `/ocwrite` now waits 5 seconds then auto-runs `/ocread` to show the reply
+- **Bridge directory** — `incoming/prompt/` added to bridge structure
+
+### Technical
+
+- `bridge/index.ts` — Re-exports `Incoming` namespace for `ExternalPrompt` access; calls `startPromptWatcher()` in `init()`
+- Typecheck: 13/13 packages pass
+
 ## [0.6.002] - 2026-04-13
 
 ### Added — OpenClaw Bridge Integration
