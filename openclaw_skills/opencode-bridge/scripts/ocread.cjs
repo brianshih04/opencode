@@ -10,7 +10,7 @@ try { online = !!JSON.parse(fs.readFileSync(BRIDGE_RUN, 'utf8')).pid; } catch {}
 
 const db = new DatabaseSync('C:/Users/Brian/.local/share/opencode/opencode-local.db');
 
-// Get last 10 text parts
+// Get last 100 text parts
 const parts = db.prepare(`
   SELECT p.data as pdata, m.data as mdata, p.session_id, s.title
   FROM part p
@@ -18,14 +18,14 @@ const parts = db.prepare(`
   JOIN session s ON p.session_id = s.id
   WHERE json_extract(p.data, '$.type') = 'text'
   ORDER BY p.time_created DESC
-  LIMIT 10
+  LIMIT 100
 `).all();
 
 const results = [];
 for (const p of parts) {
   const pdata = JSON.parse(p.pdata);
   const mdata = JSON.parse(p.mdata);
-  const text = (pdata.text || '').trim().substring(0, 400);
+  const text = (pdata.text || '').trim().substring(0, 2000);
   const role = mdata.role;
   const agent = mdata.agent || '';
   const icon = role === 'user' ? '👤' : '🤖';
