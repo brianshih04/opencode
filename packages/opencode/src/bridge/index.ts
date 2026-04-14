@@ -1,12 +1,14 @@
-import { Deferred, Effect, Layer, Option, Schedule, ServiceMap } from "effect"
+import { Effect, Layer, ServiceMap } from "effect"
 import { Log } from "@/util/log"
 import { Bus } from "@/bus"
-import { InstanceState } from "@/effect/instance-state"
 import { makeRuntime } from "@/effect/run-service"
 import { Outgoing } from "./outgoing"
-import { Incoming } from "./incoming"
+import { Incoming as IncomingNS } from "./incoming"
 import { Watcher } from "./watcher"
+import { Config } from "@/config/config"
+import { BusEvent } from "@/bus/bus-event"
 import { SessionID } from "@/session/schema"
+import z from "zod"
 
 export namespace Bridge {
   const log = Log.create({ service: "bridge" })
@@ -48,6 +50,17 @@ export namespace Bridge {
     timestamp: string
   }
 
+  // Bus Events for Bridge
+  export const Event = {
+    StatusSent: BusEvent.define(
+      "bridge.status.sent",
+      z.object({
+        level: z.string(),
+        title: z.string(),
+      }),
+    ),
+  }
+
   // Service Interface
   export interface Interface {
     readonly sendStatus: (input: {
@@ -65,20 +78,113 @@ export namespace Bridge {
       sessionId?: SessionID
       multiple?: boolean
       timeoutMinutes?: number
-    }) => Effect.Effect<number[], never, never>
+    }) => Effect.Effect<number[]>
     readonly init: () => Effect.Effect<void>
     readonly shutdown: () => Effect.Effect<void>
   }
 
   export class Service extends ServiceMap.Service<Service, Interface>()("@opencode/Bridge") {}
 
-  export const layer = Layer.effect(
+  export const layer: Layer.Layer<Service, never, Config.Service | Bus.Service> = Layer.effect(
     Service,
     Effect.gen(function* () {
-      const watcher = yield* Watcher.Service
-      const outgoing = yield* Outgoing.Service
-      const incoming = yield* Incoming.Service
+      const configService = yield* Config.Service
+      const bus = yield* Bus.Service
+      const cfg = yield* configService.get()
+      const bridgeConfig = cfg.bridge
 
+      // Resolve base path from config
+      const basePath = Watcher.resolveBasePath(bridgeConfig?.path)
+      log.info("bridge base path", { basePath })
+
+      // Construct sub-services with the resolved path
+      const watcher = Watcher.make(basePath)
+      const outgoing = Outgoing.make(basePath)
+      const incoming = IncomingNS.make(
+        basePath + "/incoming/answer",
+        basePath + "/incoming/prompt",
+      )
+
+      // --- Session status subscription ---
+      const SessionStatusEvent = BusEvent.define(
+        "session.status",
+        z.object({
+          sessionID: SessionID.zod,
+          status: z.discriminatedUnion("type", [
+            z.object({ type: z.literal("busy") }),
+            z.object({ type: z.literal("idle") }),
+            z.object({
+              type: z.literal("retry"),
+              attempt: z.number(),
+              message: z.string(),
+              next: z.number(),
+            }),
+          ]),
+        }),
+      )
+
+      const unsubStatus = yield* bus.subscribeCallback(SessionStatusEvent, (event) => {
+        const { sessionID, status } = event.properties
+        const statusMap: Record<string, { level: StatusLevel; title: string; message: string }> = {
+          busy: { level: "info", title: "任務開始", message: "Processing..." },
+          idle: { level: "info", title: "任務完成", message: "Done" },
+          retry: {
+            level: "warning",
+            title: "重試中",
+            message: status.type === "retry" ? status.message : "Retrying...",
+          },
+        }
+        const entry = statusMap[status.type]
+        if (entry) {
+          Effect.runSync(
+            outgoing.writeStatus({
+              type: "status",
+              level: entry.level,
+              session_id: sessionID,
+              title: entry.title,
+              message: entry.message,
+              timestamp: new Date().toISOString(),
+            }),
+          )
+        }
+      })
+
+      // --- Session error subscription ---
+      const SessionErrorEvent = BusEvent.define(
+        "session.error",
+        z.object({
+          sessionID: SessionID.zod.optional(),
+          error: z.any(),
+        }),
+      )
+
+      const unsubError = yield* bus.subscribeCallback(SessionErrorEvent, (event) => {
+        const { sessionID, error } = event.properties
+        const msg = error?.message ?? String(error)
+        Effect.runSync(
+          outgoing.writeStatus({
+            type: "status",
+            level: "error",
+            session_id: sessionID,
+            title: "任務失敗",
+            message: msg,
+            timestamp: new Date().toISOString(),
+          }),
+        )
+      })
+
+      // --- Finalizer ---
+      yield* Effect.addFinalizer(() =>
+        Effect.gen(function* () {
+          unsubStatus()
+          unsubError()
+          yield* incoming.stopWatching()
+          yield* watcher.removeRunJson()
+          log.info("bridge finalized")
+        }),
+      )
+
+      // --- Service methods ---
       const sendStatus = Effect.fn("Bridge.sendStatus")(function* (input: {
         level: StatusLevel
         title: string
@@ -133,6 +239,7 @@ export namespace Bridge {
         yield* watcher.writeRunJson()
         yield* watcher.cleanStaleMessages()
         yield* incoming.startWatching()
+        yield* incoming.startPromptWatcher()
         log.info("bridge initialized")
       })
 
@@ -147,9 +254,8 @@ export namespace Bridge {
   )
 
   export const defaultLayer = layer.pipe(
-    Layer.provide(Watcher.layer),
-    Layer.provide(Outgoing.layer),
-    Layer.provide(Incoming.layer),
+    Layer.provide(Config.defaultLayer),
+    Layer.provide(Bus.layer),
   )
 
   const { runPromise } = makeRuntime(Service, defaultLayer)
@@ -184,3 +290,6 @@ export namespace Bridge {
     return runPromise((s) => s.shutdown())
   }
 }
+
+// Re-export for ExternalPrompt access
+export { Incoming } from "./incoming"

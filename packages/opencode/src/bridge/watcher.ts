@@ -48,6 +48,7 @@ export namespace Watcher {
             path.join(basePath, "outgoing", "status"),
             path.join(basePath, "outgoing", "question"),
             path.join(basePath, "incoming", "answer"),
+            path.join(basePath, "incoming", "prompt"),
           ]
           for (const dir of dirs) {
             fsNode.mkdirSync(dir, { recursive: true })
@@ -87,6 +88,7 @@ export namespace Watcher {
             path.join(basePath, "outgoing", "status"),
             path.join(basePath, "outgoing", "question"),
             path.join(basePath, "incoming", "answer"),
+            path.join(basePath, "incoming", "prompt"),
           ]
           let cleaned = 0
           for (const dir of dirs) {

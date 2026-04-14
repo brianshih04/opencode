@@ -11,7 +11,18 @@
       "Bash(npx tsc:*)",
       "Bash(bunx tsc:*)",
       "Bash(bunx eslint:*)",
-      "Bash(find packages/opencode/src/ -name \"*.ts\" -exec wc -l {} +)"
+      "Bash(find packages/opencode/src/ -name \"*.ts\" -exec wc -l {} +)",
+      "Bash(bun pm:*)",
+      "Bash(cp:*)",
+      "Bash(opencode --version)",
+      "Bash(tasklist)",
+      "Bash(tasklist.exe)",
+      "Bash(netstat -ano)",
+      "Bash(curl -s http://localhost:9999/health)",
+      "Bash(curl -s http://localhost:3000/health)",
+      "Bash(/c/Users/Brian/.bun/bin/opencode.exe --version)",
+      "Bash(ls:*)",
+      "Bash(where opencode:*)"
     ]
   }
 }

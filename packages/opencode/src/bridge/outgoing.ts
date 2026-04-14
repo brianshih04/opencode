@@ -2,8 +2,10 @@ import { Effect, Layer, ServiceMap } from "effect"
 import { Log } from "@/util/log"
 import fsNode from "fs"
 import path from "path"
+import os from "os"
 import { randomUUID } from "crypto"
 import type { Bridge } from "./index"
+import { Watcher } from "./watcher"
 
 export namespace Outgoing {
   const log = Log.create({ service: "bridge.outgoing" })
@@ -35,8 +37,9 @@ export namespace Outgoing {
     }
   }
 
-  export const layer = Layer.succeed(Service, Service.of(make(path.join(
-    process.env.OC_BRIDGE_PATH || path.join(require("os").homedir(), ".opencode"),
-    "bridge",
-  ))))
+  /** Default layer — will be overridden by Bridge.layer with config-aware path */
+  export const layer = Layer.succeed(
+    Service,
+    Service.of(make(Watcher.resolveBasePath())),
+  )
 }

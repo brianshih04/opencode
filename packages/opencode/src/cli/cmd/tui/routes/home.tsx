@@ -11,7 +11,7 @@ import { TuiPluginRuntime } from "../plugin"
 import { Installation } from "@/installation"
 import { useTheme } from "@tui/context/theme"
 
-const VERSION = "1.4.003"
+const VERSION = Installation.VERSION
 
 // TODO: what is the best way to do this?
 let once = false

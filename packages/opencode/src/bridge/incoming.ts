@@ -3,6 +3,11 @@ import { Log } from "@/util/log"
 import fsNode from "fs"
 import path from "path"
 import type { Bridge } from "./index"
+import { Bus } from "@/bus"
+import { BusEvent } from "@/bus/bus-event"
+import z from "zod"
+import { SessionID } from "@/session/schema"
+import { SessionPrompt } from "@/session/prompt"
 
 interface IncomingState {
   pending: Map<string, Deferred.Deferred<number[]>>
@@ -11,6 +16,22 @@ interface IncomingState {
 
 export namespace Incoming {
   const log = Log.create({ service: "bridge.incoming" })
+
+  interface PromptMessage {
+    type: "prompt"
+    session_id: string
+    message: string
+    timestamp: string
+  }
+
+  // Event for external prompts
+  export const ExternalPrompt = BusEvent.define(
+    "bridge.external.prompt",
+    z.object({
+      sessionID: SessionID.zod,
+      message: z.string(),
+    }),
+  )
 
   function processAnswerFile(state: IncomingState, filepath: string): Effect.Effect<void> {
     return Effect.sync(() => {
@@ -47,11 +68,14 @@ export namespace Incoming {
     readonly waitForAnswer: (questionId: string, timeoutMinutes: number) => Effect.Effect<number[]>
     readonly startWatching: () => Effect.Effect<void>
     readonly stopWatching: () => Effect.Effect<void>
+    readonly startPromptWatcher: () => Effect.Effect<void>
   }
 
   export class Service extends ServiceMap.Service<Service, Interface>()("@opencode/BridgeIncoming") {}
 
-  export function make(answerDir: string): Interface {
+  let promptWatcher: fsNode.FSWatcher | null = null
+
+  export function make(answerDir: string, promptDir?: string): Interface {
     const state: IncomingState = {
       pending: new Map(),
       watcher: null,
@@ -116,6 +140,10 @@ export namespace Incoming {
             state.watcher.close()
             state.watcher = null
           }
+          if (promptWatcher) {
+            promptWatcher.close()
+            promptWatcher = null
+          }
           // Resolve all pending with empty array (no answer)
           for (const [, deferred] of state.pending) {
             Deferred.doneUnsafe(deferred, Exit.succeed([]))
@@ -123,17 +151,59 @@ export namespace Incoming {
           state.pending.clear()
           log.info("stopped watching")
         }),
+
+      startPromptWatcher: () =>
+        Effect.sync(() => {
+          if (!promptDir) return
+          fsNode.mkdirSync(promptDir, { recursive: true })
+
+          function processPromptFile(filepath: string) {
+            try {
+              const raw = fsNode.readFileSync(filepath, "utf-8")
+              const msg: PromptMessage = JSON.parse(raw)
+              log.info("external prompt received", { message: msg.message })
+              // Publish to bus — bootstrap will pick it up
+              Bus.publish(ExternalPrompt, {
+                sessionID: SessionID.make(msg.session_id),
+                message: msg.message,
+              })
+              fsNode.unlinkSync(filepath)
+            } catch (e) {
+              log.error("failed to process prompt", { error: String(e) })
+            }
+          }
+
+          // Process existing
+          if (fsNode.existsSync(promptDir)) {
+            for (const f of fsNode.readdirSync(promptDir).filter(f => f.endsWith(".json"))) {
+              processPromptFile(path.join(promptDir, f))
+            }
+          }
+
+          promptWatcher = fsNode.watch(promptDir, (eventType, filename) => {
+            if (!filename || !filename.endsWith(".json")) return
+            const fp = path.join(promptDir, filename)
+            setTimeout(() => {
+              if (fsNode.existsSync(fp)) processPromptFile(fp)
+            }, 100)
+          })
+
+          promptWatcher.on("error", (err) => {
+            log.error("prompt watcher error", { error: String(err) })
+          })
+
+          log.info("watching prompt directory", { dir: promptDir })
+        }),
     }
   }
+
+  const bridgeBase = process.env.OC_BRIDGE_PATH || path.join(require("os").homedir(), ".opencode", "bridge")
 
   export const layer = Layer.succeed(
     Service,
     Service.of(make(
-      path.join(
-        process.env.OC_BRIDGE_PATH || path.join(require("os").homedir(), ".opencode", "bridge"),
-        "incoming",
-        "answer",
-      ),
+      path.join(bridgeBase, "incoming", "answer"),
+      path.join(bridgeBase, "incoming", "prompt"),
     )),
   )
 }
