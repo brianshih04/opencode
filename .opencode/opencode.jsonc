@@ -5,6 +5,33 @@
     "opencode": {
       "options": {},
     },
+    "GB10": {
+      "name": "GB10",
+      "env": ["GB10_API_KEY"],
+      "options": {
+        "baseURL": "https://api.avision-gb10.org/v1",
+      },
+      "models": {
+        "qwen3-coder-next:q4": {
+          "name": "Qwen3 Coder Next Q4",
+          "tool_call": true,
+          "attachment": false,
+          "reasoning": true,
+          "temperature": true,
+          "limit": { "context": 128000, "output": 8192 },
+          "cost": { "input": 0, "output": 0 }
+        },
+        "qwen3.6:35b-a3b": {
+          "name": "Qwen3.6 35B A3B",
+          "tool_call": true,
+          "attachment": false,
+          "reasoning": true,
+          "temperature": true,
+          "limit": { "context": 128000, "output": 8192 },
+          "cost": { "input": 0, "output": 0 }
+        }
+      }
+    },
     "zai": {
       "name": "z.ai",
       "env": ["ZAI_API_KEY"],
