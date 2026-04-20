@@ -1041,9 +1041,10 @@ export namespace Config {
       bridge: z
         .object({
           enabled: z.boolean().optional().describe("Enable OpenClaw bridge integration"),
-          path: z.string().optional().describe("Custom bridge mailbox path"),
+          path: z.string().optional().describe("Custom bridge directory path (default: ~/.opencode/bridge)"),
         })
-        .optional(),
+        .optional()
+        .describe("OpenClaw bridge configuration for Telegram integration"),
     })
     .strict()
     .meta({

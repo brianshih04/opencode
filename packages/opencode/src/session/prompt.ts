@@ -12,6 +12,7 @@ import { ModelID, ProviderID } from "../provider/schema"
 import { type Tool as AITool, tool, jsonSchema, type ToolExecutionOptions, asSchema } from "ai"
 import { SessionCompaction } from "./compaction"
 import { Bus } from "../bus"
+import { Memory } from "../memory"
 import { ProviderTransform } from "../provider/transform"
 import { SystemPrompt } from "./system"
 import { Instruction } from "./instruction"
@@ -1509,13 +1510,10 @@ NOTE: At any point in time through this workflow you should feel free to ask the
                 const system = [...env, ...(skills ? [skills] : []), ...instructions]
 
                 // Agent memory injection
-                try {
-                  const { Memory } = require("@/memory")
-                  const agentMem = Memory.agentMemory(agent.name)
-                  if (agentMem) {
-                    system.push(`## Agent Memory (${agent.name})\nPersistent memory for the ${agent.name} agent. Update via write tool to ~/.opencode/agent-memory/${agent.name}/MEMORY.md\n\n${agentMem}`)
-                  }
-                } catch {}
+                const agentMem = Memory.agentMemory(agent.name)
+                if (agentMem) {
+                  system.push(`## Agent Memory (${agent.name})\nPersistent memory for the ${agent.name} agent. Update via write tool to ~/.opencode/agent-memory/${agent.name}/MEMORY.md\n\n${agentMem}`)
+                }
                 const format = lastUser.format ?? { type: "text" as const }
                 if (format.type === "json_schema") system.push(STRUCTURED_OUTPUT_SYSTEM_PROMPT)
                 const result = yield* handle.process({

@@ -1,0 +1,90 @@
+[
+  {
+    "type": "status",
+    "icon": "🔵",
+    "level": "info",
+    "title": "任務開始",
+    "message": "Processing...",
+    "agent": null,
+    "session_id": "9euRHBuXvVUU",
+    "timestamp": "2026-04-14T00:06:49.106Z",
+    "seen_at": 1776125249210
+  },
+  {
+    "type": "status",
+    "icon": "🔵",
+    "level": "info",
+    "title": "任務完成",
+    "message": "Done",
+    "agent": null,
+    "session_id": "9euRHBuXvVUU",
+    "timestamp": "2026-04-14T00:06:49.107Z",
+    "seen_at": 1776125249210
+  },
+  {
+    "type": "status",
+    "icon": "🔵",
+    "level": "info",
+    "title": "任務開始",
+    "message": "Processing...",
+    "agent": null,
+    "session_id": "9euRHBuXvVUU",
+    "timestamp": "2026-04-14T00:07:42.455Z",
+    "seen_at": 1776125278983
+  },
+  {
+    "type": "status",
+    "icon": "🔵",
+    "level": "info",
+    "title": "任務開始",
+    "message": "Processing...",
+    "agent": null,
+    "session_id": "9euRHBuXvVUU",
+    "timestamp": "2026-04-14T00:07:42.819Z",
+    "seen_at": 1776125278983
+  },
+  {
+    "type": "status",
+    "icon": "🔵",
+    "level": "info",
+    "title": "任務開始",
+    "message": "Processing...",
+    "agent": null,
+    "session_id": "9euRHBuXvVUU",
+    "timestamp": "2026-04-14T00:07:46.907Z",
+    "seen_at": 1776125278983
+  },
+  {
+    "type": "status",
+    "icon": "🔵",
+    "level": "info",
+    "title": "任務開始",
+    "message": "Processing...",
+    "agent": null,
+    "session_id": "9euRHBuXvVUU",
+    "timestamp": "2026-04-14T00:07:47.395Z",
+    "seen_at": 1776125278983
+  },
+  {
+    "type": "status",
+    "icon": "🔵",
+    "level": "info",
+    "title": "任務開始",
+    "message": "Processing...",
+    "agent": null,
+    "session_id": "9euRHBuXvVUU",
+    "timestamp": "2026-04-14T00:07:50.821Z",
+    "seen_at": 1776125278983
+  },
+  {
+    "type": "status",
+    "icon": "🔵",
+    "level": "info",
+    "title": "任務完成",
+    "message": "Done",
+    "agent": null,
+    "session_id": "9euRHBuXvVUU",
+    "timestamp": "2026-04-14T00:07:50.822Z",
+    "seen_at": 1776125278983
+  }
+]

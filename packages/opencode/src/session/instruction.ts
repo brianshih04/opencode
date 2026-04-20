@@ -11,6 +11,7 @@ import { Global } from "../global"
 import { Config } from "@/config/config"
 import { Instance } from "../project/instance"
 import { Log } from "../util/log"
+import { Memory } from "../memory"
 import type { MessageV2 } from "./message-v2"
 import type { MessageID } from "./schema"
 
@@ -173,11 +174,8 @@ export namespace Instruction {
 
           // Memory wake-up: inject MemPalace L0+L1 context
           const memoryContext = (function() {
-            try {
-              const { Memory } = require("@/memory")
-              const text = Memory.wakeUp()
-              return text ? "\n\n## Long-term Memory\n" + text : ""
-            } catch { return "" }
+            const text = Memory.wakeUp()
+            return text ? "\n\n## Long-term Memory\n" + text : ""
           })()
 
           return [

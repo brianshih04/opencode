@@ -92,6 +92,9 @@
       "packages/opencode/migration/*": "deny",
     },
   },
+  "bridge": {
+    "enabled": true,
+  },
   "mcp": {},
   "tools": {
     "github-triage": false,

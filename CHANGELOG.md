@@ -2,46 +2,50 @@
 
 All notable changes to this fork of OpenCode will be documented in this file.
 
-## [1.4.005] - 2026-04-13
+## [0.6.003] - 2026-04-14
+
+### Added — External Prompt (ocwrite)
+
+- **External prompt watcher** (`bridge/incoming.ts`) — New `startPromptWatcher()` watches `~/.opencode/bridge/incoming/prompt/` for incoming messages from Telegram
+- **ExternalPrompt BusEvent** — New event type for routing external prompts to the active session
+- **Bootstrap subscription** (`project/bootstrap.ts`) — Subscribes to `ExternalPrompt` events and calls `SessionPrompt.prompt()` to inject messages into the active session
+- **Directory structure** (`bridge/watcher.ts`) — Added `incoming/prompt/` to init directories and stale cleanup
+- **ocwrite.cjs** — OpenClaw skill script to send messages from Telegram to OpenCode via bridge IPC
+- **ocread.cjs** — Enhanced to read last 100 messages (up from 10) with 2000 char limit per message
+
+### Changed — OpenClaw Skill
+
+- **Slash commands** — Added `/ocw` (alias for `/ocwrite`) and `/ocr` (alias for `/ocread`)
+- **Auto-read** — `/ocwrite` now waits 5 seconds then auto-runs `/ocread` to show the reply
+- **Bridge directory** — `incoming/prompt/` added to bridge structure
+
+### Technical
+
+- `bridge/index.ts` — Re-exports `Incoming` namespace for `ExternalPrompt` access; calls `startPromptWatcher()` in `init()`
+- Typecheck: 13/13 packages pass
+
+## [0.6.002] - 2026-04-13
+
+### Added — OpenClaw Bridge Integration
+
+- **Bridge Core module** (`packages/opencode/src/bridge/`) — filesystem-based IPC with OpenClaw
+  - `outgoing.ts` — Writes status and question JSONs to `~/.opencode/bridge/outgoing/`
+  - `incoming.ts` — Watches `~/.opencode/bridge/incoming/answer/` for replies via `fs.watch`, matches `question_id` to pending deferred promises with 30-min timeout
+  - `watcher.ts` — Directory initialization, `run.json` lifecycle (PID/cwd/branch/started_at), stale message cleanup on startup
+  - `index.ts` — Unified Bridge namespace with `sendStatus()`, `sendQuestion()`, `init()`, `shutdown()`
+- **Config schema** — Added `bridge` field to config: `{ enabled: boolean, path?: string }`
+- **Bootstrap hook** — Bridge auto-initializes when `config.bridge.enabled = true`; subscribes to `Question.Asked` events to bridge questions to Telegram in parallel
+- **Zero-invasive** — Bridge is completely inert when not enabled; no changes to existing behavior
+
+### Fixed
+- **answerDir path** — Corrected incoming watcher to use `~/.opencode/bridge/incoming/answer/` (was missing `bridge` layer)
+
+## [0.6.001] - 2026-04-13
 
 ### Added
-
-#### 🌉 OpenClaw Bridge — Phase 1+2 (OpenCode 端)
-
-透過純檔案 IPC 讓 OpenClaw (Telegram) 即時監控 OpenCode 狀態並雙向互動。
-
-- **`src/bridge/schema.ts`** — Zod schemas: StatusMessage, QuestionMessage, AnswerMessage, RunInfo
-- **`src/bridge/filesystem.ts`** — bridge 目錄管理、同步 JSON 讀寫、清理工具
-- **`src/bridge/index.ts`** — 公開 API: `init()`, `cleanup()`, `sendStatus()`, `sendQuestion()`
-- **`src/bridge/monitor.ts`** — `fs.watch` incoming/answer/、pending question map、timeout 機制
-- **`src/bridge/subscriber.ts`** — Bus 訂閱 `session.status` / `session.error` / `question.asked`
-- **Config 擴展** — `bridge: { enabled?, path? }` in `opencode.jsonc`
-- **Bootstrap 整合** — 自動偵測 `bridge.enabled`，啟動時初始化
-
-**Mailbox 目錄結構**（預設 `~/.local/share/opencode/bridge/`）：
-
-```
-bridge/
-├── run.json              # PID + CWD (init 時建立, cleanup 時刪除)
-├── outgoing/status/      # 狀態推播 (info/warning/error)
-├── outgoing/question/    # 待回答的問題
-└── incoming/answer/      # OpenClaw 回覆的答案
-```
-
-**設計要點：**
-
-- 零侵入：Bridge 是附加層，不影響 Terminal 行為
-- Question 採用 Race 語義 — TUI 和 Bridge 同時等待，先到先贏
-- 離線容錯 — OpenClaw 掛了不影響 OpenCode 運作
-
-**OpenClaw 端待實作：**
-
-- 監聽 `outgoing/status/` → 推播 Telegram
-- 監聽 `outgoing/question/` → Inline Keyboard
-- 收到按鈕回應 → 寫入 `incoming/answer/*.json`
-- `/ocbridge watch` 掃描 `run.json` + PID 存活檢查
-- `/ocbridge start|status|switch|stop|kill` 指令系統
-- 詳見 `OPENCLAW_BRIDGE_PLAN.md`
+- **首頁版本號顯示** — Logo 下方顯示目前版本（透過 health API 自動取得）
+- **版本編碼制度** — 改用 `v0.x.xxx` 格式，每次修改 +0.0.001
+- **Preview build 版本簡化** — branch build 不再使用帶時間戳的長版本號，改為讀取 `package.json` version
 
 ## [1.4.004] - 2026-04-11
 
