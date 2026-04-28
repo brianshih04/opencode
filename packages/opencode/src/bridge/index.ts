@@ -289,6 +289,11 @@ export namespace Bridge {
   export async function shutdown() {
     return runPromise((s) => s.shutdown())
   }
+
+  // Utility function for getting bridge directory path
+  export function dirpath(): string {
+    return Watcher.resolveBasePath()
+  }
 }
 
 // Re-export for ExternalPrompt access

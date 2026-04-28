@@ -51,13 +51,16 @@ export function init() {
 
   offError = Bus.subscribe(Session.Event.Error, (evt) => {
     const { sessionID, error } = evt.properties
-    Bridge.sendStatus({
+    const statusPayload: Parameters<typeof Bridge.sendStatus>[0] = {
       level: "error",
-      sessionId: sessionID ?? "",
       agent: "primary",
       title: "錯誤",
       message: errorMsg(error),
-    })
+    }
+    if (sessionID) {
+      statusPayload.sessionId = sessionID
+    }
+    Bridge.sendStatus(statusPayload)
   })
 
   offQuestion = Bus.subscribe(Question.Event.Asked, (evt) => {
