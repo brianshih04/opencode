@@ -97,7 +97,7 @@ export namespace Bridge {
       const basePath = Watcher.resolveBasePath(bridgeConfig?.path)
       log.info("bridge base path", { basePath })
 
-      // Construct sub-services with the resolved path
+      // Construct sub-services with resolved path
       const watcher = Watcher.make(basePath)
       const outgoing = Outgoing.make(basePath)
       const incoming = IncomingNS.make(
